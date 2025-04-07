@@ -38,9 +38,11 @@ async function loginUser(req, res) {
 // Obtener Perfil de Usuario
 async function getUserProfile(req, res) {
     try {
-        const { user } = await supabase.auth.getUser();
-        if (!user) throw new Error('Usuario no autenticado');
-        res.status(200).json({ success: true, data: user });
+        const { data, error } = await supabase.auth.getUser();
+        if (error) throw new Error(error.message);
+        if (!data.user) throw new Error('Usuario no autenticado');
+        
+        res.status(200).json({ success: true, user: data.user });
     } catch (err) {
         res.status(401).json({ success: false, message: err.message });
     }
