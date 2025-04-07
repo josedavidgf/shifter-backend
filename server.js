@@ -1,19 +1,17 @@
+require('dotenv').config();
 const express = require('express');
 const app = express();
-const config = require('./src/config');
+
 const workerRoutes = require('./src/routes/workerRoutes');
+const authRoutes = require('./src/routes/authRoutes');
+const protectRoute = require('./src/middlewares/authMiddleware');
 
 app.use(express.json());
 
-// Rutas
-app.use('/api/workers', workerRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/workers', protectRoute, workerRoutes);
 
-// Ruta de prueba
-app.get('/', (req, res) => {
-  res.send('Shifter Backend is running');
-});
-
-const PORT = config.port;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
 });
