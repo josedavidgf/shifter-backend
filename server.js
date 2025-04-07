@@ -1,22 +1,22 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const app = express();
 
 const workerRoutes = require('./src/routes/workerRoutes');
 const authRoutes = require('./src/routes/authRoutes');
-const userRoutes = require('./src/routes/userRoutes'); // Nuevo enrutado de usuarios
 const protectRoute = require('./src/middlewares/authMiddleware');
+
+// Configurar CORS
+app.use(cors({
+  origin: 'http://localhost:3000', // Permitir el frontend local
+  credentials: true, // Permitir envío de cookies y headers de autenticación
+}));
 
 app.use(express.json());
 
-// Rutas de autenticación (registro, login)
 app.use('/api/auth', authRoutes);
-
-// Rutas protegidas (workers)
-app.use('/api/workers', protectRoute, workerRoutes);
-
-// Rutas de usuarios (CRUD)
-app.use('/api/users', userRoutes);
+app.use('/api/users', protectRoute, workerRoutes);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
