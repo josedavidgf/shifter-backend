@@ -24,29 +24,33 @@ async function loginUser(req, res) {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw new Error(error.message);
 
-        // Verificar si se generó el token de sesión
-        if (data.session?.access_token) {
-            res.status(200).json({ success: true, data });
-        } else {
-            throw new Error('No se pudo generar el token de acceso');
-        }
+        // Actualizar el último inicio de sesión
+        await supabase
+            .from('workers')
+            .update({ last_login_timestamp: new Date().toISOString() })
+            .eq('user_id', data.user.id);
+
+        res.status(200).json({ success: true, data });
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });
     }
 }
 
+
 // Obtener Perfil de Usuario
 async function getUserProfile(req, res) {
     try {
-        const { data, error } = await supabase.auth.getUser();
+        const userId = req.user.id;
+        const { data, error } = await supabase.auth.api.getUserById(userId);
+
         if (error) throw new Error(error.message);
-        if (!data.user) throw new Error('Usuario no autenticado');
-        
-        res.status(200).json({ success: true, user: data.user });
+        res.status(200).json({ success: true, user: data });
     } catch (err) {
-        res.status(401).json({ success: false, message: err.message });
+        res.status(400).json({ success: false, message: err.message });
     }
 }
+
+
 
 // Actualizar Perfil
 async function updateUserProfile(req, res) {
@@ -55,6 +59,22 @@ async function updateUserProfile(req, res) {
         const { data, error } = await supabase.auth.updateUser({ email, password });
         if (error) throw new Error(error.message);
         res.status(200).json({ success: true, data });
+    } catch (err) {
+        res.status(400).json({ success: false, message: err.message });
+    }
+}
+// Crear Worker en el Onboarding
+async function createWorker(req, res) {
+    const { userId, name, surname, workerTypeId, email } = req.body;
+
+    try {
+        const { data, error } = await supabase
+            .from('workers')
+            .insert([{ userId, name, surname, workerTypeId, email, state: 'active', createdAt: new Date() }]);
+
+        if (error) throw new Error(error.message);
+
+        res.status(201).json({ success: true, data });
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });
     }
@@ -77,4 +97,5 @@ module.exports = {
     getUserProfile,
     updateUserProfile,
     logoutUser,
+    createWorker,
 };

@@ -16,10 +16,15 @@ async function loginUser(email, password) {
 
 // Verificar sesión
 async function getUser(token) {
-  const { data, error } = await supabase.auth.getUser(token);
-  if (error) throw new Error(error.message);
-  return data;
+  try {
+      const { data, error } = await supabase.auth.getUser(token);
+      if (error) throw new Error(error.message);
+      return data.user;
+  } catch (err) {
+      throw new Error('Error al obtener el usuario: ' + err.message);
+  }
 }
+
 
 module.exports = {
   registerUser,

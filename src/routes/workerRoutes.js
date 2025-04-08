@@ -6,12 +6,12 @@ const {
   updateWorker,
   deleteWorker,
 } = require('../controllers/workerController');
-
+const protectRoute = require('../middlewares/authMiddleware');
 const router = express.Router();
 
 router.get('/', getAllWorkers);
 router.get('/:id', getWorkerById);
-router.post('/', createWorker);
+router.post('/', protectRoute,createWorker);
 router.put('/:id', updateWorker);
 router.delete('/:id', deleteWorker);
 
