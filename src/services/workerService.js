@@ -20,13 +20,33 @@ async function getWorkerById(workerId) {
 
 // Crear un nuevo trabajador
 async function createWorker(workerData) {
-  const { data, error } = await supabase
-    .from('workers')
-    .insert([workerData])
-    .select('*');
-  if (error) throw new Error(error.message);
-  return data;
+  try {
+    if (!workerData || !workerData.user_id || !workerData.name || !workerData.worker_type_id) {
+      console.error('❌ workerData incompleto:', workerData);
+      throw new Error('Datos obligatorios faltantes para crear el trabajador');
+    }
+
+    console.log('📤 Insertando worker en Supabase:', workerData);
+
+    const { data, error } = await supabase
+      .from('workers')
+      .insert([workerData])
+      .select('*');
+
+    if (error) {
+      console.error('❌ Error al insertar worker en Supabase:', error);
+      throw new Error(error.message);
+    }
+
+    console.log('✅ Worker insertado correctamente:', data);
+    return data;
+
+  } catch (err) {
+    console.error('❌ createWorker error:', err.message);
+    throw err;
+  }
 }
+
 
 // Actualizar un trabajador por ID
 async function updateWorker(workerId, workerData) {

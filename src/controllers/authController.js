@@ -27,7 +27,6 @@ async function loginUser(req, res) {
         // Actualizar el último inicio de sesión
         await supabase
             .from('workers')
-            .update({ last_login_timestamp: new Date().toISOString() })
             .eq('user_id', data.user.id);
 
         res.status(200).json({ success: true, data });
