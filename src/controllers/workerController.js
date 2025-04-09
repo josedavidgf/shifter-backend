@@ -48,6 +48,7 @@ const createWorker = async (req, res) => {
         surname,
         user_id: req.user.sub,
         email: req.user.email,
+        state: 'active',
         worker_type_id: workerType
       };
   
