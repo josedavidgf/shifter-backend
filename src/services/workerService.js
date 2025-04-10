@@ -47,6 +47,18 @@ async function createWorker(workerData) {
   }
 }
 
+async function getWorkerByUserId(userId) {
+  const { data, error } = await supabase
+    .from('workers')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+
 
 // Actualizar un trabajador por ID
 async function updateWorker(workerId, workerData) {
@@ -76,4 +88,5 @@ module.exports = {
   createWorker,
   updateWorker,
   deleteWorker,
+  getWorkerByUserId,
 };

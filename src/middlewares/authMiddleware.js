@@ -5,8 +5,8 @@ const protectRoute = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(' ')[1]; // 👈 asegúrate de definirlo antes de loguear
 
-    console.log('🧪 Header recibido:', authHeader);
-    console.log('👉 Token recibido:', token);
+    //console.log('🧪 Header recibido:', authHeader);
+    //console.log('👉 Token recibido:', token);
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ success: false, message: 'No token provided' });
@@ -15,7 +15,7 @@ const protectRoute = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
-        console.log('🔓 Token decodificado:', decoded);
+        //console.log('🔓 Token decodificado:', decoded);
         req.user = decoded;
         next();
       } catch (err) {

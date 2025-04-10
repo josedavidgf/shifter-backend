@@ -7,6 +7,8 @@ const workerRoutes = require('./src/routes/workerRoutes');
 const authRoutes = require('./src/routes/authRoutes');
 const protectRoute = require('./src/middlewares/authMiddleware');
 const workerTypeRoutes = require('./src/routes/workerTypeRoutes');
+const hospitalRoutes = require('./src/routes/hospitalRoutes');
+const specialityRoutes = require('./src/routes/specialityRoutes');
 
 // Configurar CORS
 app.use(cors({
@@ -19,6 +21,9 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/workers', protectRoute, workerRoutes);
 app.use('/api/workerTypes', workerTypeRoutes);
+app.use('/api/hospitals', hospitalRoutes);
+app.use('/api/specialities', specialityRoutes);
+
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
