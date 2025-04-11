@@ -1,4 +1,4 @@
-const { createShift, getShiftsByWorkerId, updateShift , removeShift} = require('../services/shiftService');
+const { createShift, getShiftsByWorkerId, updateShift , removeShift, getHospitalShifts} = require('../services/shiftService');
 const { getWorkerByUserId, getWorkerHospital } = require('../services/workerService');
 const supabase = require('../config/supabase');
 
@@ -129,12 +129,30 @@ async function handleRemoveShift(req, res) {
         res.status(500).json({ success: false, message: err.message });
     }
 }
+async function handleGetHospitalShifts(req, res) {
+    try {
+      const userId = req.user?.sub;
+      console.log('🟡 userId shifts:', userId);
+      const worker = await getWorkerByUserId(userId);
+      if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
+  
+      const hospital = await getWorkerHospital(worker.worker_id);
+      if (!hospital) return res.status(404).json({ success: false, message: 'Hospital not found' });
+  
+      const shifts = await getHospitalShifts(hospital.hospital_id, worker.worker_id);
+      res.json({ success: true, data: shifts });
+    } catch (err) {
+      console.error('❌ Error al obtener turnos del hospital:', err.message);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
 
 module.exports = {
     handleCreateShift,
     handleGetMyShifts,
     handleUpdateShift,
     handleGetShiftById,
-    handleRemoveShift
+    handleRemoveShift,
+    handleGetHospitalShifts
 };
 

@@ -4,7 +4,8 @@ const {
     handleGetMyShifts, 
     handleUpdateShift, 
     handleGetShiftById,
-    handleRemoveShift 
+    handleRemoveShift ,
+    handleGetHospitalShifts
 } = require('../controllers/shiftController');
 const protectRoute = require('../middlewares/authMiddleware');
 const router = express.Router();
@@ -12,6 +13,7 @@ const router = express.Router();
 
 router.post('/', protectRoute, handleCreateShift);
 router.get('/mine', protectRoute, handleGetMyShifts);
+router.get('/hospital', protectRoute, handleGetHospitalShifts);
 router.get('/:id', protectRoute, handleGetShiftById);
 router.patch('/:id', protectRoute, handleUpdateShift);
 router.patch('/:id/remove', protectRoute, handleRemoveShift);

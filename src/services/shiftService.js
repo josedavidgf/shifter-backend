@@ -86,6 +86,19 @@ async function removeShift(shiftId, userId) {
     return data;
 }
 
+async function getHospitalShifts(hospitalId, workerId) {
+    const { data, error } = await supabase
+      .from('shifts')
+      .select('*')
+      .eq('hospital_id', hospitalId)
+      .neq('worker_id', workerId)
+      .eq('state', 'published')
+      .order('date', { ascending: true });
+  
+    if (error) throw new Error(error.message);
+    return data;
+  }
+  
 
 
 module.exports = {
@@ -93,4 +106,5 @@ module.exports = {
     getShiftsByWorkerId,
     updateShift,
     removeShift,
+    getHospitalShifts,
 };
