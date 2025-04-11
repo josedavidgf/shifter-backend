@@ -1,3 +1,4 @@
+const { get } = require('express/lib/response');
 const supabase = require('../config/supabase');
 
 async function createShift(shiftData){ 
@@ -28,4 +29,41 @@ async function createShift(shiftData){
     }
 }
 
-module.exports = { createShift };
+async function getShiftsByWorkerId(workerId) {
+    const { data, error } = await supabase
+      .from('shifts')
+      .select('*')
+      .eq('worker_id', workerId)
+      .order('date', { ascending: false });
+  
+    if (error) throw new Error(error.message);
+    return data;
+  }
+  async function updateShift(shiftId, updates, userId) {
+    // Verificar que el turno pertenece al user
+    const { data: shift, error: findError } = await supabase
+      .from('shifts')
+      .select('shift_id, worker_id')
+      .eq('shift_id', shiftId)
+      .single();
+  
+    if (findError) throw new Error('Turno no encontrado');
+  
+  
+    const { data, error } = await supabase
+      .from('shifts')
+      .update(updates)
+      .eq('shift_id', shiftId)
+      .select()
+      .single();
+  
+    if (error) throw new Error(error.message);
+    return data;
+  }
+  
+
+module.exports = { 
+    createShift , 
+    getShiftsByWorkerId, 
+    updateShift
+ };
