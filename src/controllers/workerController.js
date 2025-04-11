@@ -201,6 +201,121 @@ const deleteWorker = async (req, res) => {
   }
 };
 
+const getFullWorkerProfile = async (req, res) => {
+    const userId = req.user?.sub;
+    if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+  
+    // 1. Buscar el worker
+    const { data: worker, error: wError } = await supabase
+      .from('workers')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+    console.log('👤 Worker profile:', worker);
+    if (wError || !worker) return res.status(404).json({ success: false, message: 'Worker not found' });
+  
+    const workerId = worker.worker_id;
+    console.log('👤 Worker ID:', workerId);
+    // 2. Buscar hospital
+    const { data: workerHospitals } = await supabase
+      .from('workers_hospitals')
+      .select('hospital_id')
+      .eq('worker_id', workerId);
+    console.log('🏥 Hospital profile:', workerHospitals);
+    const hospitalId = workerHospitals?.[0]?.hospital_id || null;
+    console.log('🏥 Hospital ID:', hospitalId);
+  
+    // 3. Buscar especialidad
+    const { data: workerSpecialities } = await supabase
+      .from('workers_specialities')
+      .select('speciality_id, qualification_level')
+      .eq('worker_id', workerId);
+    const specialityId = workerSpecialities?.[0]?.speciality_id || null;
+    console.log('🔬 Speciality profile:', workerSpecialities);
+    const qualificationLevel = workerSpecialities?.[0]?.qualification_level || null;
+    console.log('🔬 Speciality ID:', specialityId);
+    res.status(200).json({
+      success: true,
+      data: {
+        workerId,
+        hospitalId,
+        specialityId,
+        qualificationLevel,
+      },
+    });
+  };
+  
+  const updateWorkerInfo = async (req, res) => {
+    const userId = req.user?.sub;
+    const { name, surname } = req.body;
+  
+    const { data: worker } = await supabase
+      .from('workers')
+      .select('worker_id')
+      .eq('user_id', userId)
+      .single();
+  
+    const { error } = await supabase
+      .from('workers')
+      .update({ name, surname })
+      .eq('worker_id', worker.worker_id);
+  
+    if (error) return res.status(400).json({ success: false, message: error.message });
+  
+    res.status(200).json({ success: true });
+  };
+  
+  const updateWorkerHospital = async (req, res) => {
+    const userId = req.user?.sub;
+    const { hospital_id } = req.body;
+  
+    const { data: worker } = await supabase
+      .from('workers')
+      .select('worker_id')
+      .eq('user_id', userId)
+      .single();
+  
+    const { error: delErr } = await supabase
+      .from('workers_hospitals')
+      .delete()
+      .eq('worker_id', worker.worker_id);
+  
+    const { error: insErr } = await supabase
+      .from('workers_hospitals')
+      .insert({ worker_id: worker.worker_id, hospital_id });
+  
+    if (delErr || insErr)
+      return res.status(400).json({ success: false, message: 'Error updating hospital' });
+  
+    res.status(200).json({ success: true });
+  };
+  const updateWorkerSpeciality = async (req, res) => {
+    const userId = req.user?.sub;
+    const { speciality_id, qualification_level } = req.body;
+  
+    const { data: worker } = await supabase
+      .from('workers')
+      .select('worker_id')
+      .eq('user_id', userId)
+      .single();
+  
+    const { error: delErr } = await supabase
+      .from('workers_specialities')
+      .delete()
+      .eq('worker_id', worker.worker_id);
+  
+    const { error: insErr } = await supabase
+      .from('workers_specialities')
+      .insert({ worker_id: worker.worker_id, speciality_id, qualification_level });
+  
+    if (delErr || insErr)
+      return res.status(400).json({ success: false, message: 'Error updating speciality' });
+  
+    res.status(200).json({ success: true });
+  };
+  
+  
+
 module.exports = {
     getAllWorkers,
     getWorkerById,
@@ -211,4 +326,8 @@ module.exports = {
     createWorkerHospital,
     getMyWorkerProfile,
     checkWorkerOnboardingCompletion,
+    getFullWorkerProfile,
+    updateWorkerInfo,
+    updateWorkerHospital,
+    updateWorkerSpeciality,
 };

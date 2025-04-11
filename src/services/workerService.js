@@ -82,6 +82,20 @@ async function deleteWorker(workerId) {
   return data;
 }
 
+// Obtener el hospital asociado a un trabajador
+async function getWorkerHospital(workerId) {
+  const { data, error } = await supabase
+    .from('workers_hospitals')
+    .select('hospital_id')
+    .eq('worker_id', workerId)
+    .eq('state', 'active')
+    .single();
+  if (error) throw new Error(error.message);
+  console.log('🟡 Hospital asociado al trabajador:', data.hospital_id);
+  return data;
+}
+
+
 module.exports = {
   getAllWorkers,
   getWorkerById,
@@ -89,4 +103,5 @@ module.exports = {
   updateWorker,
   deleteWorker,
   getWorkerByUserId,
+  getWorkerHospital,
 };

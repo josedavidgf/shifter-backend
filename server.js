@@ -9,6 +9,7 @@ const protectRoute = require('./src/middlewares/authMiddleware');
 const workerTypeRoutes = require('./src/routes/workerTypeRoutes');
 const hospitalRoutes = require('./src/routes/hospitalRoutes');
 const specialityRoutes = require('./src/routes/specialityRoutes');
+const shiftRoutes = require('./src/routes/shiftRoutes');
 
 // Configurar CORS
 app.use(cors({
@@ -23,6 +24,7 @@ app.use('/api/workers', protectRoute, workerRoutes);
 app.use('/api/workerTypes', workerTypeRoutes);
 app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/specialities', specialityRoutes);
+app.use('/api/shifts', shiftRoutes);
 
 
 const PORT = process.env.PORT || 4000;
