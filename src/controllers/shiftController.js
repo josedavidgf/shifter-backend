@@ -4,7 +4,10 @@ const {
     updateShift,
     removeShift,
     getHospitalShifts,
-    createShiftPreferences } = require('../services/shiftService');
+    createShiftPreferences,
+    getShiftPreferencesByShiftId,
+    replaceShiftPreferences
+} = require('../services/shiftService');
 const { getWorkerByUserId, getWorkerHospital } = require('../services/workerService');
 const supabase = require('../config/supabase');
 
@@ -43,6 +46,7 @@ async function handleCreateShift(req, res) {
         console.log('🟢 Shift creado:', newShift);
 
         if (Array.isArray(preferences) && preferences.length > 0) {
+            console.log('🟡 shiftId:', newShift.shift_id);
             await createShiftPreferences(newShift.shift_id, preferences);
         }
         console.log('🟢 Preferencias de turno creadas:', preferences);
@@ -127,6 +131,33 @@ async function handleGetHospitalShifts(req, res) {
         res.status(500).json({ success: false, message: err.message });
     }
 }
+async function handleGetShiftPreferences(req, res) {
+    try {
+        const shiftId = req.params.id;
+        const data = await getShiftPreferencesByShiftId(shiftId);
+        res.json({ success: true, data });
+    } catch (err) {
+        console.error('❌ Error al obtener preferencias:', err.message);
+        res.status(500).json({ success: false, message: err.message });
+    }
+}
+
+async function handleUpdateShiftPreferences(req, res) {
+    try {
+        const shiftId = req.params.id;
+        const preferences = req.body.preferences;
+
+        if (!Array.isArray(preferences)) {
+            return res.status(400).json({ success: false, message: 'preferences must be an array' });
+        }
+
+        const data = await replaceShiftPreferences(shiftId, preferences);
+        res.json({ success: true, data });
+    } catch (err) {
+        console.error('❌ Error al actualizar preferencias:', err.message);
+        res.status(500).json({ success: false, message: err.message });
+    }
+}
 
 module.exports = {
     handleCreateShift,
@@ -134,6 +165,8 @@ module.exports = {
     handleUpdateShift,
     handleGetShiftById,
     handleRemoveShift,
-    handleGetHospitalShifts
+    handleGetHospitalShifts,
+    handleGetShiftPreferences,
+    handleUpdateShiftPreferences,
 };
 

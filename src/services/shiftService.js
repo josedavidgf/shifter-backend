@@ -14,7 +14,8 @@ async function createShift(shiftData) {
         const { data, error } = await supabase
             .from('shifts')
             .insert([shiftData])
-            .select('*');
+            .select('*')
+            .single();
 
         if (error) {
             console.error('❌ Error al insertar turno en Supabase:', error);
@@ -116,7 +117,41 @@ async function createShiftPreferences(shiftId, preferences) {
     return data;
 }
 
-
+async function getShiftPreferencesByShiftId(shiftId) {
+    const { data, error } = await supabase
+      .from('shift_preferences')
+      .select('*')
+      .eq('shift_id', shiftId);
+  
+    if (error) throw new Error(error.message);
+    return data;
+  }
+  
+  async function replaceShiftPreferences(shiftId, preferences) {
+    // 1. Borrar todas las preferencias existentes
+    const { error: deleteError } = await supabase
+      .from('shift_preferences')
+      .delete()
+      .eq('shift_id', shiftId);
+  
+    if (deleteError) throw new Error(deleteError.message);
+  
+    // 2. Insertar nuevas
+    const enriched = preferences.map((p) => ({
+      shift_id: shiftId,
+      preferred_date: p.preferred_date || null,
+      preferred_type: p.preferred_type || null,
+      preferred_label: p.preferred_label || null,
+    }));
+  
+    const { data, error } = await supabase
+      .from('shift_preferences')
+      .insert(enriched);
+  
+    if (error) throw new Error(error.message);
+    return data;
+  }
+  
 
 
 module.exports = {
@@ -126,4 +161,6 @@ module.exports = {
     removeShift,
     getHospitalShifts,
     createShiftPreferences,
+    getShiftPreferencesByShiftId,
+    replaceShiftPreferences,
 };
