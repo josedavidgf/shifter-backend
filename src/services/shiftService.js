@@ -88,17 +88,35 @@ async function removeShift(shiftId, userId) {
 
 async function getHospitalShifts(hospitalId, workerId) {
     const { data, error } = await supabase
-      .from('shifts')
-      .select('*')
-      .eq('hospital_id', hospitalId)
-      .neq('worker_id', workerId)
-      .eq('state', 'published')
-      .order('date', { ascending: true });
-  
+        .from('shifts')
+        .select('*')
+        .eq('hospital_id', hospitalId)
+        .neq('worker_id', workerId)
+        .eq('state', 'published')
+        .order('date', { ascending: true });
+    
     if (error) throw new Error(error.message);
     return data;
-  }
-  
+}
+
+
+async function createShiftPreferences(shiftId, preferences) {
+    const enriched = preferences.map((p) => ({
+        shift_id: shiftId,
+        preferred_date: p.preferred_date || null,
+        preferred_type: p.preferred_type || null,
+        preferred_label: p.preferred_label || null,
+    }));
+    console.log('📤 Insertando preferencias de turno en Supabase:', enriched);
+    const { data, error } = await supabase
+        .from('shift_preferences')
+        .insert(enriched);
+    console.log('✅ Preferencias de turno insertadas correctamente:', data);
+    if (error) throw new Error(error.message);
+    return data;
+}
+
+
 
 
 module.exports = {
@@ -107,4 +125,5 @@ module.exports = {
     updateShift,
     removeShift,
     getHospitalShifts,
+    createShiftPreferences,
 };

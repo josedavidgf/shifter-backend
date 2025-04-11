@@ -1,77 +1,58 @@
-const { createShift, getShiftsByWorkerId, updateShift , removeShift, getHospitalShifts} = require('../services/shiftService');
+const {
+    createShift,
+    getShiftsByWorkerId,
+    updateShift,
+    removeShift,
+    getHospitalShifts,
+    createShiftPreferences } = require('../services/shiftService');
 const { getWorkerByUserId, getWorkerHospital } = require('../services/workerService');
 const supabase = require('../config/supabase');
 
 
 async function handleCreateShift(req, res) {
     try {
-        console.log('✅ Entrando en handleCreateShift');
-        const userId = req.user.sub; // ✅ correcto, el campo es id
-        console.log('🟡 userId:', userId);
+        const userId = req.user.sub;
         const worker = await getWorkerByUserId(userId);
-        const workerId = worker.worker_id;
-
-        console.log('🟡 worker:', worker);
-        console.log('🟡 workerId:', worker.worker_id);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
 
-        const hospitalInfo = await getWorkerHospital(workerId);
-        const hospital = hospitalInfo.hospital_id;
-        console.log('🟡 hospital:', hospital);
+        const hospitalInfo = await getWorkerHospital(worker.worker_id);
+        const hospital = hospitalInfo?.hospital_id;
         if (!hospital) return res.status(400).json({ success: false, message: 'No hospital assigned to worker' });
 
         const {
             date,
-            /* start_time, 
-            end_time,  */
-            shift_type,
-            shift_label,
-            speciality_id
-        } = req.body;
-        console.log('🟡 Datos recibidos:', {
-            date,
-            /* start_time,
-            end_time, */
             shift_type,
             shift_label,
             speciality_id,
-        });
+            preferences // 👈 importante: recogemos esto también
+        } = req.body;
 
         if (!speciality_id) {
             return res.status(400).json({ success: false, message: 'speciality_id is required' });
         }
-
-        // Log defensivo
-        console.log('🟡 Datos a insertar:', {
-            worker_id: workerId,
-            hospital_id: hospital,
-            speciality_id,
-            date,
-            /* start_time,
-            end_time, */
-            shift_type,
-            shift_label,
-        });
 
         const newShift = await createShift({
             worker_id: worker.worker_id,
             hospital_id: hospital,
             speciality_id,
             date,
-            /* start_time,
-            end_time, */
             shift_type,
             shift_label,
             state: 'published',
         });
+        console.log('🟢 Shift creado:', newShift);
 
-        res.json({ success: true, data: newShift });
-
+        if (Array.isArray(preferences) && preferences.length > 0) {
+            await createShiftPreferences(newShift.shift_id, preferences);
+        }
+        console.log('🟢 Preferencias de turno creadas:', preferences);
+        res.status(201).json({ success: true, data: newShift });
     } catch (err) {
         console.error('❌ Shift creation error:', err.message);
         res.status(500).json({ success: false, message: err.message });
     }
 }
+
 
 async function handleGetMyShifts(req, res) {
     try {
@@ -131,21 +112,21 @@ async function handleRemoveShift(req, res) {
 }
 async function handleGetHospitalShifts(req, res) {
     try {
-      const userId = req.user?.sub;
-      console.log('🟡 userId shifts:', userId);
-      const worker = await getWorkerByUserId(userId);
-      if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
-  
-      const hospital = await getWorkerHospital(worker.worker_id);
-      if (!hospital) return res.status(404).json({ success: false, message: 'Hospital not found' });
-  
-      const shifts = await getHospitalShifts(hospital.hospital_id, worker.worker_id);
-      res.json({ success: true, data: shifts });
+        const userId = req.user?.sub;
+        console.log('🟡 userId shifts:', userId);
+        const worker = await getWorkerByUserId(userId);
+        if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
+
+        const hospital = await getWorkerHospital(worker.worker_id);
+        if (!hospital) return res.status(404).json({ success: false, message: 'Hospital not found' });
+
+        const shifts = await getHospitalShifts(hospital.hospital_id, worker.worker_id);
+        res.json({ success: true, data: shifts });
     } catch (err) {
-      console.error('❌ Error al obtener turnos del hospital:', err.message);
-      res.status(500).json({ success: false, message: err.message });
+        console.error('❌ Error al obtener turnos del hospital:', err.message);
+        res.status(500).json({ success: false, message: err.message });
     }
-  }
+}
 
 module.exports = {
     handleCreateShift,
