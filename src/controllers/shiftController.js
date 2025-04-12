@@ -57,11 +57,16 @@ async function handleCreateShift(req, res) {
             shift_type,
             shift_label,
             speciality_id,
-            preferences // 👈 importante: recogemos esto también
+            preferences
         } = req.body;
 
         if (!speciality_id) {
             return res.status(400).json({ success: false, message: 'speciality_id is required' });
+        }
+
+        const today = new Date().toISOString().split('T')[0]; // formato YYYY-MM-DD
+        if (date < today) {
+            return res.status(400).json({ success: false, message: 'La fecha del turno no puede ser anterior a hoy.' });
         }
 
         const newShift = await createShift({

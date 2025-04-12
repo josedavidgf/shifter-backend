@@ -23,6 +23,12 @@ async function handleCreateSwap(req, res) {
             offered_label,
         });
 
+        const today = new Date().toISOString().split('T')[0]; // formato YYYY-MM-DD
+        if (offered_date < today) {
+            return res.status(400).json({ success: false, message: 'La fecha del swap no puede ser anterior a hoy.' });
+        }
+
+
         res.status(201).json({ success: true, data: swap });
     } catch (err) {
         console.error('❌ Error al crear intercambio:', err.message);
