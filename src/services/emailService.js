@@ -47,8 +47,30 @@ async function sendSwapProposalEmail(toEmail, shift, offered) {
   
     await transporter.sendMail(mailOptions);
   }
+  async function sendSwapRejectedEmail(toEmail, originalShift, proposedShift) {
+    const mailOptions = {
+      from: `"Shifter" <${process.env.SMTP_USER}>`,
+      to: toEmail,
+      subject: '❌ Tu intercambio ha sido rechazado',
+      html: `
+        <p>Lamentablemente, tu propuesta de intercambio ha sido <strong>rechazada</strong> por ${originalShift.owner_email}.</p>
+  
+        <p><strong>Turno que solicitaste cambiar:</strong><br>
+        ${originalShift.date} — ${originalShift.shift_type} (${originalShift.shift_label})</p>
+  
+        <p><strong>Turno que ofreciste:</strong><br>
+        ${proposedShift.offered_date} — ${proposedShift.offered_type} (${proposedShift.offered_label})</p>
+  
+        <p>Puedes proponer otro cambio desde la app si lo deseas.</p>
+      `
+    };
+  
+    await transporter.sendMail(mailOptions);
+  }
+  
 
 module.exports = { 
     sendSwapProposalEmail,
-    sendSwapAcceptedEmail
+    sendSwapAcceptedEmail,
+    sendSwapRejectedEmail
  };
