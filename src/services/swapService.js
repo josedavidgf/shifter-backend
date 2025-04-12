@@ -53,22 +53,38 @@ async function cancelSwap(swapId, requesterId) {
 }
 
 async function respondToSwap(swapId, status, ownerId) {
-  const { data, error } = await supabase
+  const { data: shifts, error: shiftQueryError } = await supabase
+    .from('shifts')
+    .select('shift_id')
+    .eq('worker_id', ownerId);
+
+  if (shiftQueryError) throw new Error(shiftQueryError.message);
+  const shiftIds = shifts.map(s => s.shift_id);
+
+  const { data: updatedSwap, error } = await supabase
     .from('swaps')
     .update({ status })
     .eq('swap_id', swapId)
-    .in('shift_id', 
-      supabase
-        .from('shifts')
-        .select('shift_id')
-        .eq('worker_id', ownerId)
-    )
+    .in('shift_id', shiftIds)
     .select()
     .single();
 
   if (error) throw new Error(error.message);
-  return data;
+
+  if (status === 'accepted') {
+    const shiftId = updatedSwap.shift_id;
+
+    const { error: shiftError } = await supabase
+      .from('shifts')
+      .update({ state: 'swapped' })
+      .eq('shift_id', shiftId);
+
+    if (shiftError) throw new Error('No se pudo actualizar el estado del turno');
+  }
+
+  return updatedSwap;
 }
+
 
 
 
@@ -94,9 +110,9 @@ async function getSwapsByRequesterId(workerId) {
 
 
 
-module.exports = { 
-  createSwap, 
-  getSwapsForMyShifts ,
+module.exports = {
+  createSwap,
+  getSwapsForMyShifts,
   getSwapsByRequesterId,
   respondToSwap,
   cancelSwap,
