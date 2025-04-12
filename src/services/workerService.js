@@ -95,6 +95,60 @@ async function getWorkerHospital(workerId) {
   return data;
 }
 
+async function getWorkerStats(workerId) {
+  const publishedShiftsQuery = supabase
+    .from('shifts')
+    .select('shift_id', { count: 'exact' })
+    .eq('worker_id', workerId)
+    .eq('state', 'published');
+
+  const swappedShiftsQuery = supabase
+    .from('shifts')
+    .select('shift_id', { count: 'exact' })
+    .eq('worker_id', workerId)
+    .eq('state', 'swapped');
+
+  const swapsProposedQuery = supabase
+    .from('swaps')
+    .select('swap_id', { count: 'exact' })
+    .eq('requester_id', workerId)
+    .eq('status', 'proposed');
+
+  const swapsAcceptedQuery = supabase
+    .from('swaps')
+    .select('swap_id', { count: 'exact' })
+    .eq('requester_id', workerId)
+    .eq('status', 'accepted');
+
+  const [
+    publishedShifts,
+    swappedShifts,
+    swapsProposed,
+    swapsAccepted
+  ] = await Promise.all([
+    publishedShiftsQuery,
+    swappedShiftsQuery,
+    swapsProposedQuery,
+    swapsAcceptedQuery
+  ]);
+
+  if (
+    publishedShifts.error ||
+    swappedShifts.error ||
+    swapsProposed.error ||
+    swapsAccepted.error
+  ) {
+    throw new Error('Error en las consultas de métricas');
+  }
+
+  return {
+    publishedShifts: publishedShifts.count || 0,
+    swappedShifts: swappedShifts.count || 0,
+    swapsProposed: swapsProposed.count || 0,
+    swapsAccepted: swapsAccepted.count || 0,
+  };
+}
+
 
 module.exports = {
   getAllWorkers,
@@ -104,4 +158,5 @@ module.exports = {
   deleteWorker,
   getWorkerByUserId,
   getWorkerHospital,
+  getWorkerStats
 };

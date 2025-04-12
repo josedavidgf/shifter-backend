@@ -1,6 +1,19 @@
 const workerService = require('../services/workerService');
 const supabase = require('../config/supabase');
 
+async function handleGetWorkerStats(req, res) {
+    try {
+      const userId = req.user.sub;
+      const worker = await workerService.getWorkerByUserId(userId);
+      if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
+  
+      const stats = await workerService.getWorkerStats(worker.worker_id);
+      res.json({ success: true, data: stats });
+    } catch (err) {
+      console.error('❌ Error al obtener stats:', err.message);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
 
 // Obtener todos los trabajadores
 const getAllWorkers = async (req, res) => {
@@ -330,4 +343,5 @@ module.exports = {
     updateWorkerInfo,
     updateWorkerHospital,
     updateWorkerSpeciality,
+    handleGetWorkerStats
 };

@@ -13,6 +13,7 @@ const {
     updateWorkerInfo,
     updateWorkerHospital,
     updateWorkerSpeciality,
+    handleGetWorkerStats
 } = require('../controllers/workerController');
 
 const protectRoute = require('../middlewares/authMiddleware');
@@ -21,6 +22,7 @@ const router = express.Router();
 router.get('/me', protectRoute, getMyWorkerProfile);
 router.get('/me/full', protectRoute, getFullWorkerProfile);
 router.get('/me/completion', protectRoute, checkWorkerOnboardingCompletion);
+router.get('/me/stats', protectRoute, handleGetWorkerStats);
 router.put('/me', protectRoute, updateWorkerInfo);
 router.put('/me/hospital', protectRoute, updateWorkerHospital);
 router.put('/me/speciality', protectRoute, updateWorkerSpeciality);
