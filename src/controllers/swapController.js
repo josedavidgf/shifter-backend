@@ -1,4 +1,5 @@
 const { createSwap } = require('../services/swapService');
+const {getShiftWithOwnerEmail} = require('../services/shiftService');
 const { getWorkerByUserId } = require('../services/workerService');
 const {
     getSwapsForMyShifts,
@@ -6,6 +7,7 @@ const {
     respondToSwap,
     getSwapsByRequesterId
 } = require('../services/swapService');
+const { sendSwapProposalEmail } = require('../services/emailService');
 
 async function handleCreateSwap(req, res) {
     try {
@@ -28,6 +30,24 @@ async function handleCreateSwap(req, res) {
             return res.status(400).json({ success: false, message: 'La fecha del swap no puede ser anterior a hoy.' });
         }
 
+        // 🔍 Obtener detalles completos del turno
+        const shift = await getShiftWithOwnerEmail(shift_id);
+        if (!shift || !shift.owner_email) {
+            console.warn('⚠️ No se pudo obtener el email del receptor');
+            return res.status(201).json({ success: true, data: swap });
+        }
+
+        // Enviar correo al trabajador con la propuesta de swap
+        await sendSwapProposalEmail(
+            shift.owner_email, // receptor
+            shift,             // turno original
+            {
+                requester_email: worker.email,
+                offered_date,
+                offered_type,
+                offered_label
+            }
+        );
 
         res.status(201).json({ success: true, data: swap });
     } catch (err) {

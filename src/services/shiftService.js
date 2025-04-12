@@ -95,7 +95,7 @@ async function getHospitalShifts(hospitalId, workerId) {
         .neq('worker_id', workerId)
         .eq('state', 'published')
         .order('date', { ascending: true });
-    
+
     if (error) throw new Error(error.message);
     return data;
 }
@@ -108,6 +108,12 @@ async function createShiftPreferences(shiftId, preferences) {
         preferred_type: p.preferred_type || null,
         preferred_label: p.preferred_label || null,
     }));
+    const today = new Date().toISOString().split('T')[0]; // formato YYYY-MM-DD
+    if (p.preferred_date && p.preferred_date < today) {
+        throw new Error('No puedes proponer fechas anteriores en las preferencias');
+    }
+
+
     console.log('📤 Insertando preferencias de turno en Supabase:', enriched);
     const { data, error } = await supabase
         .from('shift_preferences')
@@ -119,37 +125,63 @@ async function createShiftPreferences(shiftId, preferences) {
 
 async function getShiftPreferencesByShiftId(shiftId) {
     const { data, error } = await supabase
-      .from('shift_preferences')
-      .select('*')
-      .eq('shift_id', shiftId);
-  
+        .from('shift_preferences')
+        .select('*')
+        .eq('shift_id', shiftId);
+
     if (error) throw new Error(error.message);
     return data;
-  }
-  
-  async function replaceShiftPreferences(shiftId, preferences) {
+}
+
+async function replaceShiftPreferences(shiftId, preferences) {
     // 1. Borrar todas las preferencias existentes
     const { error: deleteError } = await supabase
-      .from('shift_preferences')
-      .delete()
-      .eq('shift_id', shiftId);
-  
+        .from('shift_preferences')
+        .delete()
+        .eq('shift_id', shiftId);
+
     if (deleteError) throw new Error(deleteError.message);
-  
+
     // 2. Insertar nuevas
     const enriched = preferences.map((p) => ({
-      shift_id: shiftId,
-      preferred_date: p.preferred_date || null,
-      preferred_type: p.preferred_type || null,
-      preferred_label: p.preferred_label || null,
+        shift_id: shiftId,
+        preferred_date: p.preferred_date || null,
+        preferred_type: p.preferred_type || null,
+        preferred_label: p.preferred_label || null,
     }));
-  
+
     const { data, error } = await supabase
-      .from('shift_preferences')
-      .insert(enriched);
-  
+        .from('shift_preferences')
+        .insert(enriched);
+
     if (error) throw new Error(error.message);
     return data;
+}
+
+async function getShiftWithOwnerEmail(shiftId) {
+    const { data, error } = await supabase
+      .from('shifts')
+      .select(`
+        shift_id,
+        date,
+        shift_type,
+        shift_label,
+        worker_id,
+        workers:worker_id (
+          email
+        )
+      `)
+      .eq('shift_id', shiftId)
+      .single();
+  
+    if (error) throw new Error(error.message);
+    return {
+      shift_id: data.shift_id,
+      date: data.date,
+      shift_type: data.shift_type,
+      shift_label: data.shift_label,
+      owner_email: data.workers.email
+    };
   }
   
 
@@ -163,4 +195,5 @@ module.exports = {
     createShiftPreferences,
     getShiftPreferencesByShiftId,
     replaceShiftPreferences,
+    getShiftWithOwnerEmail
 };
