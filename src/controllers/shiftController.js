@@ -46,10 +46,8 @@ async function handleCreateShift(req, res) {
         console.log('🟢 Shift creado:', newShift);
 
         if (Array.isArray(preferences) && preferences.length > 0) {
-            console.log('🟡 shiftId:', newShift.shift_id);
             await createShiftPreferences(newShift.shift_id, preferences);
         }
-        console.log('🟢 Preferencias de turno creadas:', preferences);
         res.status(201).json({ success: true, data: newShift });
     } catch (err) {
         console.error('❌ Shift creation error:', err.message);
@@ -61,9 +59,7 @@ async function handleCreateShift(req, res) {
 async function handleGetMyShifts(req, res) {
     try {
         const userId = req.user?.sub; // O req.user.id si lo tienes así
-        console.log('🟡 userId updateShift:', userId);
         const worker = await getWorkerByUserId(userId);
-        console.log('🟡 worker updateShift:', worker);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
 
         const shifts = await getShiftsByWorkerId(worker.worker_id);
@@ -89,11 +85,8 @@ async function handleGetShiftById(req, res) {
 async function handleUpdateShift(req, res) {
     try {
         const userId = req.user?.sub;
-        console.log('🟡 userId:', userId);
         const shiftId = req.params.id;
-        console.log('🟡 shiftId:', shiftId);
         const updates = req.body;
-        console.log('🟡 Datos a actualizar:', updates);
 
         const updated = await updateShift(shiftId, updates, userId);
         res.json({ success: true, data: updated });
@@ -117,7 +110,6 @@ async function handleRemoveShift(req, res) {
 async function handleGetHospitalShifts(req, res) {
     try {
         const userId = req.user?.sub;
-        console.log('🟡 userId shifts:', userId);
         const worker = await getWorkerByUserId(userId);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
 
