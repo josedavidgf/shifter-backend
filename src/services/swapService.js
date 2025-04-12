@@ -39,21 +39,30 @@ async function getSwapsForMyShifts(workerId) {
   return swaps;
 }
 
-async function updateSwapStatus(swapId, status, receiverWorkerId) {
-  // Verifica que el turno pertenece al trabajador que lo recibe
-  const { data: swap, error: fetchError } = await supabase
+async function cancelSwap(swapId, requesterId) {
+  const { data, error } = await supabase
     .from('swaps')
-    .select('*, shift:shift_id(worker_id)')
+    .update({ status: 'cancelled' })
     .eq('swap_id', swapId)
+    .eq('requester_id', requesterId)
+    .select()
     .single();
 
-  if (fetchError) throw new Error(fetchError.message);
-  if (swap.shift.worker_id !== receiverWorkerId) throw new Error('No autorizado');
+  if (error) throw new Error(error.message);
+  return data;
+}
 
+async function respondToSwap(swapId, status, ownerId) {
   const { data, error } = await supabase
     .from('swaps')
     .update({ status })
     .eq('swap_id', swapId)
+    .in('shift_id', 
+      supabase
+        .from('shifts')
+        .select('shift_id')
+        .eq('worker_id', ownerId)
+    )
     .select()
     .single();
 
@@ -62,8 +71,33 @@ async function updateSwapStatus(swapId, status, receiverWorkerId) {
 }
 
 
+
+async function getSwapsByRequesterId(workerId) {
+  const { data, error } = await supabase
+    .from('swaps')
+    .select(`
+      *,
+      shift:shift_id (
+        shift_id,
+        date,
+        shift_type,
+        shift_label,
+        worker_id
+      )
+    `)
+    .eq('requester_id', workerId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+
+
 module.exports = { 
   createSwap, 
   getSwapsForMyShifts ,
-  updateSwapStatus
+  getSwapsByRequesterId,
+  respondToSwap,
+  cancelSwap,
 };

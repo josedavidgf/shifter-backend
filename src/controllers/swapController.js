@@ -1,6 +1,11 @@
 const { createSwap } = require('../services/swapService');
 const { getWorkerByUserId } = require('../services/workerService');
-const { getSwapsForMyShifts, updateSwapStatus } = require('../services/swapService');
+const {
+    getSwapsForMyShifts,
+    cancelSwap,
+    respondToSwap,
+    getSwapsByRequesterId
+} = require('../services/swapService');
 
 async function handleCreateSwap(req, res) {
     try {
@@ -42,27 +47,52 @@ async function handleGetReceivedSwaps(req, res) {
     }
 }
 
-async function handleUpdateSwapStatus(req, res) {
+async function handleCancelSwap(req, res) {
     try {
-      const userId = req.user.sub;
-      const worker = await getWorkerByUserId(userId);
-      const { id } = req.params;
-      const { status } = req.body;
-  
-      if (!['accepted', 'rejected', 'cancelled'].includes(status)) {
-        return res.status(400).json({ success: false, message: 'Invalid status' });
-      }
-  
-      const result = await updateSwapStatus(id, status, worker.worker_id);
-      res.json({ success: true, data: result });
-    } catch (err) {
-      console.error('❌ Error al actualizar estado del swap:', err.message);
-      res.status(500).json({ success: false, message: err.message });
-    }
-  }
+        const userId = req.user.sub;
+        const worker = await getWorkerByUserId(userId);
+        const swapId = req.params.id;
 
+        const result = await cancelSwap(swapId, worker.worker_id);
+        res.json({ success: true, data: result });
+    } catch (err) {
+        console.error('❌ Error al cancelar swap:', err.message);
+        res.status(403).json({ success: false, message: err.message });
+    }
+}
+async function handleRespondToSwap(req, res) {
+    try {
+        const userId = req.user.sub;
+        const worker = await getWorkerByUserId(userId);
+        const swapId = req.params.id;
+        const { status } = req.body;
+
+        if (!['accepted', 'rejected'].includes(status)) {
+            return res.status(400).json({ success: false, message: 'Estado inválido' });
+        }
+
+        const result = await respondToSwap(swapId, status, worker.worker_id);
+        res.json({ success: true, data: result });
+    } catch (err) {
+        console.error('❌ Error al responder al swap:', err.message);
+        res.status(403).json({ success: false, message: err.message });
+    }
+}
+async function handleGetSentSwaps(req, res) {
+    try {
+        const userId = req.user.sub;
+        const worker = await getWorkerByUserId(userId);
+        const swaps = await getSwapsByRequesterId(worker.worker_id);
+        res.json({ success: true, data: swaps });
+    } catch (err) {
+        console.error('❌ Error al obtener swaps enviados:', err.message);
+        res.status(500).json({ success: false, message: err.message });
+    }
+}
 module.exports = {
     handleCreateSwap,
     handleGetReceivedSwaps,
-    handleUpdateSwapStatus
+    handleRespondToSwap,
+    handleGetSentSwaps,
+    handleCancelSwap
 };
