@@ -1,4 +1,8 @@
 const supabase = require('../config/supabase');
+const { sendSwapAcceptedEmail } = require('../services/emailService');
+const { getShiftWithOwnerEmail } = require('../services/shiftService');
+const { getWorkerById } = require('../services/workerService');
+
 
 async function createSwap(data) {
   const { data: swap, error } = await supabase
@@ -74,12 +78,26 @@ async function respondToSwap(swapId, status, ownerId) {
   if (status === 'accepted') {
     const shiftId = updatedSwap.shift_id;
 
+    // 1. Marcar el turno como intercambiado
     const { error: shiftError } = await supabase
       .from('shifts')
       .update({ state: 'swapped' })
       .eq('shift_id', shiftId);
 
     if (shiftError) throw new Error('No se pudo actualizar el estado del turno');
+    
+    // 2. Obtener emails y datos    
+    const [shift, requester] = await Promise.all([
+      getShiftWithOwnerEmail(shiftId),
+      getWorkerById(updatedSwap.requester_id)
+    ]);
+    // 3. Enviar email al solicitante
+    await sendSwapAcceptedEmail(
+      requester.email,
+      shift,
+      updatedSwap
+    );
+
   }
 
   return updatedSwap;
