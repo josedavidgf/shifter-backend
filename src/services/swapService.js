@@ -39,9 +39,31 @@ async function getSwapsForMyShifts(workerId) {
   return swaps;
 }
 
+async function updateSwapStatus(swapId, status, receiverWorkerId) {
+  // Verifica que el turno pertenece al trabajador que lo recibe
+  const { data: swap, error: fetchError } = await supabase
+    .from('swaps')
+    .select('*, shift:shift_id(worker_id)')
+    .eq('swap_id', swapId)
+    .single();
+
+  if (fetchError) throw new Error(fetchError.message);
+  if (swap.shift.worker_id !== receiverWorkerId) throw new Error('No autorizado');
+
+  const { data, error } = await supabase
+    .from('swaps')
+    .update({ status })
+    .eq('swap_id', swapId)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data;
+}
 
 
 module.exports = { 
   createSwap, 
-  getSwapsForMyShifts 
+  getSwapsForMyShifts ,
+  updateSwapStatus
 };

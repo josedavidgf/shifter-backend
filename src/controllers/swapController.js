@@ -1,6 +1,6 @@
 const { createSwap } = require('../services/swapService');
 const { getWorkerByUserId } = require('../services/workerService');
-const { getSwapsForMyShifts } = require('../services/swapService');
+const { getSwapsForMyShifts, updateSwapStatus } = require('../services/swapService');
 
 async function handleCreateSwap(req, res) {
     try {
@@ -42,7 +42,27 @@ async function handleGetReceivedSwaps(req, res) {
     }
 }
 
+async function handleUpdateSwapStatus(req, res) {
+    try {
+      const userId = req.user.sub;
+      const worker = await getWorkerByUserId(userId);
+      const { id } = req.params;
+      const { status } = req.body;
+  
+      if (!['accepted', 'rejected', 'cancelled'].includes(status)) {
+        return res.status(400).json({ success: false, message: 'Invalid status' });
+      }
+  
+      const result = await updateSwapStatus(id, status, worker.worker_id);
+      res.json({ success: true, data: result });
+    } catch (err) {
+      console.error('❌ Error al actualizar estado del swap:', err.message);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
 module.exports = {
     handleCreateSwap,
     handleGetReceivedSwaps,
+    handleUpdateSwapStatus
 };
