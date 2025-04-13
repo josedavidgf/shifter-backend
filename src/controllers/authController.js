@@ -24,11 +24,6 @@ async function loginUser(req, res) {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw new Error(error.message);
 
-        // Actualizar el último inicio de sesión
-        await supabase
-            .from('workers')
-            .eq('user_id', data.user.id);
-
         res.status(200).json({ success: true, data });
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });
@@ -90,6 +85,35 @@ async function logoutUser(req, res) {
     }
 }
 
+async function handleResendVerification(req, res) {
+    try {
+      const userId = req.user.sub;
+  
+      // 1. Obtener el email del usuario desde Supabase
+      const { data: userData, error: getUserError } = await supabase.auth.admin.getUserById(userId);
+      if (getUserError || !userData?.user?.email) {
+        throw new Error(getUserError?.message || 'No se pudo obtener el email del usuario');
+      }
+  
+      // 2. Reenviar el correo de verificación
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: userData.user.email,
+      });
+  
+      if (error) {
+        throw new Error(error.message);
+      }
+  
+      res.status(200).json({ success: true, message: 'Correo de verificación reenviado' });
+    } catch (err) {
+      console.error('❌ Error al reenviar verificación:', err.message);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+  
+
+
 module.exports = {
     registerUser,
     loginUser,
@@ -97,4 +121,5 @@ module.exports = {
     updateUserProfile,
     logoutUser,
     createWorker,
+    handleResendVerification
 };
