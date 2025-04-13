@@ -251,6 +251,7 @@ const getFullWorkerProfile = async (req, res) => {
       success: true,
       data: {
         workerId,
+        worker,
         hospitalId,
         specialityId,
         qualificationLevel,

@@ -90,9 +90,14 @@ async function removeShift(shiftId, userId) {
 async function getHospitalShifts(hospitalId, workerId) {
     const { data, error } = await supabase
         .from('shifts')
-        .select('*')
+        .select(`
+      *,
+      worker:worker_id (
+        name,
+        surname
+      )
+    `)
         .eq('hospital_id', hospitalId)
-        .neq('worker_id', workerId)
         .eq('state', 'published')
         .order('date', { ascending: true });
 
@@ -160,8 +165,8 @@ async function replaceShiftPreferences(shiftId, preferences) {
 
 async function getShiftWithOwnerEmail(shiftId) {
     const { data, error } = await supabase
-      .from('shifts')
-      .select(`
+        .from('shifts')
+        .select(`
         shift_id,
         date,
         shift_type,
@@ -171,19 +176,19 @@ async function getShiftWithOwnerEmail(shiftId) {
           email
         )
       `)
-      .eq('shift_id', shiftId)
-      .single();
-  
+        .eq('shift_id', shiftId)
+        .single();
+
     if (error) throw new Error(error.message);
     return {
-      shift_id: data.shift_id,
-      date: data.date,
-      shift_type: data.shift_type,
-      shift_label: data.shift_label,
-      owner_email: data.workers.email
+        shift_id: data.shift_id,
+        date: data.date,
+        shift_type: data.shift_type,
+        shift_label: data.shift_label,
+        owner_email: data.workers.email
     };
-  }
-  
+}
+
 
 
 module.exports = {
