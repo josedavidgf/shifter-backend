@@ -30,9 +30,11 @@ app.use('/api/shifts', shiftRoutes);
 app.use('/api/swaps', swapRoutes);
 
 
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
-});
-
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'https://shifter-frontend-preproduction-3dc7.up.railway.app' // pon tu dominio exacto
+  ],
+  credentials: true
+}));
 
