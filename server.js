@@ -17,7 +17,7 @@ const swapRoutes = require('./src/routes/swapRoutes');
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://shifter-frontend.vercel.app/'
+    'https://shifter-frontend.vercel.app'
   ],
   credentials: true
 }));
