@@ -17,8 +17,7 @@ const swapRoutes = require('./src/routes/swapRoutes');
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://shifter-frontend-preproduction-3dc7.up.railway.app' // pon tu dominio exacto
-    'https://shifter-frontend-production.up.railway.app'
+    'https://shifter-frontend.vercel.app/login'
   ],
   credentials: true
 }));
