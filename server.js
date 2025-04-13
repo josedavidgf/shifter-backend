@@ -15,9 +15,13 @@ const swapRoutes = require('./src/routes/swapRoutes');
 
 // Configurar CORS
 app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true,
+  origin: [
+    'http://localhost:3000',
+    'https://shifter-frontend-preproduction-3dc7.up.railway.app' // pon tu dominio exacto
+  ],
+  credentials: true
 }));
+
 
 app.use(express.json());
 
@@ -30,11 +34,9 @@ app.use('/api/shifts', shiftRoutes);
 app.use('/api/swaps', swapRoutes);
 
 
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://shifter-frontend-preproduction-3dc7.up.railway.app' // pon tu dominio exacto
-  ],
-  credentials: true
-}));
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+});
+
 
