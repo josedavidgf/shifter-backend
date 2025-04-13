@@ -12,8 +12,9 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-async function sendSwapProposalEmail(toEmail, shift, offered) {
-  const allow = await shouldSendEmail(toUserId);
+async function sendSwapProposalEmail(userId,toEmail, shift, offered) {
+  console.log('📤 Enviando email de propuesta de intercambio a:', userId);
+  const allow = await shouldSendEmail(userId);
   if (!allow) {
     console.log('📭 Usuario ha desactivado los emails. No se enviará.');
     return;
@@ -34,9 +35,9 @@ async function sendSwapProposalEmail(toEmail, shift, offered) {
   await transporter.sendMail(mailOptions);
 }
 
-async function sendSwapAcceptedEmail(toEmail, originalShift, acceptedShift) {
+async function sendSwapAcceptedEmail(userId,toEmail, originalShift, acceptedShift) {
 
-  const allow = await shouldSendEmail(toUserId);
+  const allow = await shouldSendEmail(userId);
   if (!allow) {
     console.log('📭 Usuario ha desactivado los emails. No se enviará.');
     return;
@@ -61,14 +62,14 @@ async function sendSwapAcceptedEmail(toEmail, originalShift, acceptedShift) {
 
   await transporter.sendMail(mailOptions);
 }
-async function sendSwapRejectedEmail(toEmail, originalShift, proposedShift) {
+async function sendSwapRejectedEmail(userId,toEmail, originalShift, proposedShift) {
 
-  const allow = await shouldSendEmail(toUserId);
+  const allow = await shouldSendEmail(userId);
   if (!allow) {
     console.log('📭 Usuario ha desactivado los emails. No se enviará.');
     return;
   }
-  
+
   const mailOptions = {
     from: `"Shifter" <${process.env.SMTP_USER}>`,
     to: toEmail,

@@ -176,7 +176,8 @@ async function getShiftWithOwnerEmail(shiftId) {
         shift_label,
         worker_id,
         workers:worker_id (
-          email
+          email,
+          user_id
         )
       `)
         .eq('shift_id', shiftId)
@@ -188,7 +189,8 @@ async function getShiftWithOwnerEmail(shiftId) {
         date: data.date,
         shift_type: data.shift_type,
         shift_label: data.shift_label,
-        owner_email: data.workers.email
+        owner_email: data.workers.email,
+        owner_user_id: data.workers.user_id
     };
 }
 

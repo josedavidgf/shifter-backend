@@ -88,6 +88,7 @@ async function respondToSwap(swapId, status, ownerId) {
       ]);
     
       await sendSwapRejectedEmail(
+        requester.user_id,
         requester.email,
         shift,
         updatedSwap
@@ -113,6 +114,7 @@ async function respondToSwap(swapId, status, ownerId) {
     ]);
     // 3. Enviar email al solicitante
     await sendSwapAcceptedEmail(
+      requester.user_id,
       requester.email,
       shift,
       updatedSwap

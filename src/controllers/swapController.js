@@ -36,9 +36,15 @@ async function handleCreateSwap(req, res) {
             console.warn('⚠️ No se pudo obtener el email del receptor');
             return res.status(201).json({ success: true, data: swap });
         }
+        console.log('🟡 shift:', shift);
+        if (!shift || !shift.owner_user_id) {
+            console.warn('⚠️ No se pudo obtener el userId del receptor');
+            return res.status(201).json({ success: true, data: swap });
+        }
 
         // Enviar correo al trabajador con la propuesta de swap
         await sendSwapProposalEmail(
+            shift.owner_user_id, // receptor user id
             shift.owner_email, // receptor
             shift,             // turno original
             {
