@@ -29,7 +29,23 @@ async function upsertUserPreferences(userId, preferences) {
     return data;
 }
 
+async function shouldSendEmail(userId) {
+    const { data, error } = await supabase
+      .from('user_preferences')
+      .select('receive_emails')
+      .eq('user_id', userId)
+      .single();
+  
+    if (error) {
+      console.error('❌ Error al obtener preferencias de email:', error.message);
+      return false; // Por seguridad: no enviar si no sabemos.
+    }
+  
+    return data.receive_emails === true;
+  }
+
 module.exports = {
     getUserPreferences,
     upsertUserPreferences,
+    shouldSendEmail
 };
