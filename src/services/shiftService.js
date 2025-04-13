@@ -87,14 +87,16 @@ async function removeShift(shiftId, userId) {
     return data;
 }
 
-async function getHospitalShifts(hospitalId, workerId) {
+async function getHospitalShifts(hospitalId, workerId, workerTypeId) {
     const { data, error } = await supabase
         .from('shifts')
         .select(`
       *,
       worker:worker_id (
         name,
-        surname
+        surname,
+        worker_id,
+        worker_type_id
       )
     `)
         .eq('hospital_id', hospitalId)
@@ -102,7 +104,7 @@ async function getHospitalShifts(hospitalId, workerId) {
         .order('date', { ascending: true });
 
     if (error) throw new Error(error.message);
-    return data;
+    return data.filter(shift => shift.worker?.worker_type_id === workerTypeId);
 }
 
 

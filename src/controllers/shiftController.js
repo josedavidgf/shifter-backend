@@ -151,7 +151,7 @@ async function handleGetHospitalShifts(req, res) {
         const hospital = await getWorkerHospital(worker.worker_id);
         if (!hospital) return res.status(404).json({ success: false, message: 'Hospital not found' });
 
-        const shifts = await getHospitalShifts(hospital.hospital_id, worker.worker_id);
+        const shifts = await getHospitalShifts(hospital.hospital_id, worker.worker_id, worker.worker_type_id);
         res.json({ success: true, data: shifts });
     } catch (err) {
         console.error('❌ Error al obtener turnos del hospital:', err.message);
