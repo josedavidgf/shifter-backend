@@ -75,27 +75,27 @@ async function respondToSwap(swapId, status, ownerId) {
 
   if (error) throw new Error(error.message);
 
-  if(status === 'rejected') {
+  if (status === 'rejected') {
     const shiftId = updatedSwap.shift_id;
     const { error: shiftError } = await supabase
       .from('shifts')
       .update({ state: 'rejected' })
       .eq('shift_id', shiftId);
 
-      const [shift, requester] = await Promise.all([
-        getShiftWithOwnerEmail(updatedSwap.shift_id),
-        getWorkerById(updatedSwap.requester_id)
-      ]);
-    
-      await sendSwapRejectedEmail(
-        requester.user_id,
-        requester.email,
-        shift,
-        updatedSwap
-      );
+    const [shift, requester] = await Promise.all([
+      getShiftWithOwnerEmail(updatedSwap.shift_id),
+      getWorkerById(updatedSwap.requester_id)
+    ]);
+
+    await sendSwapRejectedEmail(
+      requester.user_id,
+      requester.email,
+      shift,
+      updatedSwap
+    );
   }
-  
-  
+
+
   if (status === 'accepted') {
     const shiftId = updatedSwap.shift_id;
 
@@ -106,7 +106,7 @@ async function respondToSwap(swapId, status, ownerId) {
       .eq('shift_id', shiftId);
 
     if (shiftError) throw new Error('No se pudo actualizar el estado del turno');
-    
+
     // 2. Obtener emails y datos    
     const [shift, requester] = await Promise.all([
       getShiftWithOwnerEmail(shiftId),
@@ -138,7 +138,12 @@ async function getSwapsByRequesterId(workerId) {
         date,
         shift_type,
         shift_label,
-        worker_id
+        worker_id,
+        worker:worker_id (
+          name,
+          surname,
+          email
+        )
       )
     `)
     .eq('requester_id', workerId)
