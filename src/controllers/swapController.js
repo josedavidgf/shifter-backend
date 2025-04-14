@@ -36,7 +36,7 @@ async function handleCreateSwap(req, res) {
             console.warn('⚠️ No se pudo obtener el email del receptor');
             return res.status(201).json({ success: true, data: swap });
         }
-        console.log('🟡 shift:', shift);
+        //console.log('🟡 shift:', shift);
         if (!shift || !shift.owner_user_id) {
             console.warn('⚠️ No se pudo obtener el userId del receptor');
             return res.status(201).json({ success: true, data: swap });
@@ -66,12 +66,12 @@ async function handleGetReceivedSwaps(req, res) {
     try {
         const userId = req.user.sub;
         const worker = await getWorkerByUserId(userId);
-        console.log('🟡 userId swaps:', userId);
-        console.log('🟡 worker swaps:', worker);
+        //console.log('🟡 userId swaps:', userId);
+        //console.log('🟡 worker swaps:', worker);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
 
         const swaps = await getSwapsForMyShifts(worker.worker_id);
-        console.log('🟡 swaps:', swaps);
+        //console.log('🟡 swaps:', swaps);
         res.json({ success: true, data: swaps });
     } catch (err) {
         console.error('❌ Error al cargar swaps recibidos:', err.message);

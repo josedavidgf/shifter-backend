@@ -26,7 +26,7 @@ async function createWorker(workerData) {
       throw new Error('Datos obligatorios faltantes para crear el trabajador');
     }
 
-    console.log('📤 Insertando worker en Supabase:', workerData);
+    //console.log('📤 Insertando worker en Supabase:', workerData);
 
     const { data, error } = await supabase
       .from('workers')
@@ -38,7 +38,7 @@ async function createWorker(workerData) {
       throw new Error(error.message);
     }
 
-    console.log('✅ Worker insertado correctamente:', data);
+    //console.log('✅ Worker insertado correctamente:', data);
     return data;
 
   } catch (err) {
@@ -91,7 +91,7 @@ async function getWorkerHospital(workerId) {
     .eq('state', 'active')
     .single();
   if (error) throw new Error(error.message);
-  console.log('🟡 Hospital asociado al trabajador:', data.hospital_id);
+  //console.log('🟡 Hospital asociado al trabajador:', data.hospital_id);
   return data;
 }
 

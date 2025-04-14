@@ -6,14 +6,14 @@ async function getUserPreferences(userId) {
         .select('*')
         .eq('user_id', userId)
         .single();
-    console.log('User preferences retrieved:', data);
+    //console.log('User preferences retrieved:', data);
 
     if (error && error.code !== 'PGRST116') throw new Error(error.message);
     return data;
 }
 
 async function upsertUserPreferences(userId, preferences) {
-    console.log('Upserting user preferences:', userId, preferences);
+    //console.log('Upserting user preferences:', userId, preferences);
 
     const { data, error } = await supabase        
         .from('user_preferences')
@@ -23,9 +23,9 @@ async function upsertUserPreferences(userId, preferences) {
         })
         .select()
         .single();
-    console.log('User preferences upserted:', data);
+    //console.log('User preferences upserted:', data);
     if (error) throw new Error(error.message);
-    console.log('User preferences upserted:', data);
+    //console.log('User preferences upserted:', data);
     return data;
 }
 

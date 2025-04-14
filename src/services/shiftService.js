@@ -9,7 +9,7 @@ async function createShift(shiftData) {
             throw new Error('Datos obligatorios faltantes para crear el turno');
         }
 
-        console.log('📤 Insertando turno en Supabase:', shiftData);
+        //console.log('📤 Insertando turno en Supabase:', shiftData);
 
         const { data, error } = await supabase
             .from('shifts')
@@ -22,7 +22,7 @@ async function createShift(shiftData) {
             throw new Error(error.message);
         }
 
-        console.log('✅ Turno insertado correctamente:', data);
+        //console.log('✅ Turno insertado correctamente:', data);
         return data;
     }
     catch (err) {
@@ -110,23 +110,25 @@ async function getHospitalShifts(hospitalId, excludeWorkerId, workerTypeId) {
 
 
 async function createShiftPreferences(shiftId, preferences) {
+    /* console.log('📤 Insertando preferencias de turno en Supabase:', preferences);
+    console.log('shiftId:', shiftId); */
     const enriched = preferences.map((p) => ({
         shift_id: shiftId,
         preferred_date: p.preferred_date || null,
         preferred_type: p.preferred_type || null,
         preferred_label: p.preferred_label || null,
     }));
+    //console.log('enriched:', enriched);
     const today = new Date().toISOString().split('T')[0]; // formato YYYY-MM-DD
-    if (p.preferred_date && p.preferred_date < today) {
+    
+    /* if (p.preferred_date && p.preferred_date < today) {
         throw new Error('No puedes proponer fechas anteriores en las preferencias');
-    }
+    } */
 
 
-    console.log('📤 Insertando preferencias de turno en Supabase:', enriched);
     const { data, error } = await supabase
         .from('shift_preferences')
         .insert(enriched);
-    console.log('✅ Preferencias de turno insertadas correctamente:', data);
     if (error) throw new Error(error.message);
     return data;
 }

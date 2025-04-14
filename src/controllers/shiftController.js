@@ -14,7 +14,7 @@ const supabase = require('../config/supabase');
 async function handleExpireOldShifts(req, res) {
     try {
         const today = new Date().toISOString().split('T')[0];
-        console.log('📆 Hoy es:', today);
+        //console.log('📆 Hoy es:', today);
 
         const { data: candidates, error: readError } = await supabase
             .from('shifts')
@@ -24,7 +24,7 @@ async function handleExpireOldShifts(req, res) {
 
         if (readError) throw new Error(readError.message);
 
-        console.log('🟡 Candidatos a expirar:', candidates);
+        //console.log('🟡 Candidatos a expirar:', candidates);
 
         const { error: updateError } = await supabase
             .from('shifts')
@@ -78,8 +78,8 @@ async function handleCreateShift(req, res) {
             shift_label,
             state: 'published',
         });
-        console.log('🟢 Shift creado:', newShift);
-
+        //console.log('🟢 Shift creado:', newShift);
+        //console.log('🟢 Preferences:', preferences);
         if (Array.isArray(preferences) && preferences.length > 0) {
             await createShiftPreferences(newShift.shift_id, preferences);
         }

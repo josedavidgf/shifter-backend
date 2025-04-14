@@ -52,8 +52,8 @@ const createWorker = async (req, res) => {
       }
   
       // Inspección de entrada
-      console.log('📨 Body recibido:', { name, surname, workerType });
-      console.log('🔐 Usuario autenticado:', req.user);
+      //console.log('📨 Body recibido:', { name, surname, workerType });
+      //console.log('🔐 Usuario autenticado:', req.user);
   
       // Preparación de datos
       const newWorker = {
@@ -65,7 +65,7 @@ const createWorker = async (req, res) => {
         worker_type_id: workerType
       };
   
-      console.log('📤 Insertando en Supabase:', newWorker);
+      //console.log('📤 Insertando en Supabase:', newWorker);
   
       const { data, error } = await supabase
         .from('workers')
@@ -77,7 +77,7 @@ const createWorker = async (req, res) => {
         return res.status(500).json({ success: false, message: error.message });
       }
   
-      console.log('✅ Trabajador creado:', data);
+      //console.log('✅ Trabajador creado:', data);
       res.status(201).json({ success: true, worker: data[0] });
   
     } catch (err) {
@@ -92,7 +92,7 @@ const createWorker = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Missing workerId or hospitalId' });
         }
     
-        console.log('🧪 Guardando worker-hospital:', { workerId, hospitalId });
+        //console.log('🧪 Guardando worker-hospital:', { workerId, hospitalId });
     
         const { data, error } = await supabase
         .from('workers_hospitals')
@@ -110,12 +110,12 @@ const createWorker = async (req, res) => {
   
   const createWorkerSpeciality = async (req, res) => {
     const { workerId, specialityId, qualificationLevel, experienceYears } = req.body;
-    console.log('🧪 Guardando worker-speciality 1:', { workerId, specialityId, qualificationLevel , experienceYears});
+    //console.log('🧪 Guardando worker-speciality 1:', { workerId, specialityId, qualificationLevel , experienceYears});
     if (!workerId || !specialityId || !qualificationLevel || !experienceYears) {
       console.error('❌ Campos obligatorios faltantes:', { workerId, specialityId, qualificationLevel });
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
-    console.log('🧪 Guardando worker-speciality 2:', { workerId, specialityId, qualificationLevel, experienceYears });
+    //console.log('🧪 Guardando worker-speciality 2:', { workerId, specialityId, qualificationLevel, experienceYears });
     const { data, error } = await supabase
       .from('workers_specialities')
       .insert([{ 
@@ -169,19 +169,19 @@ const createWorker = async (req, res) => {
     }
   
     const workerId = worker.worker_id;
-    console.log('👤 Worker ID:', workerId);
+    //console.log('👤 Worker ID:', workerId);
     // Verificar hospital
     const { data: hospitals } = await supabase
       .from('workers_hospitals')
       .select('id')
       .eq('worker_id', workerId);
-    console.log('🏥 Hospital:', hospitals);
+    //console.log('🏥 Hospital:', hospitals);
     // Verificar especialidad
     const { data: specialities } = await supabase
       .from('workers_specialities')
       .select('id')
       .eq('worker_id', workerId);
-    console.log('🔬 Especialidad:', specialities);
+    //console.log('🔬 Especialidad:', specialities);
     res.status(200).json({
       success: true,
       data: {
@@ -224,19 +224,19 @@ const getFullWorkerProfile = async (req, res) => {
       .select('*')
       .eq('user_id', userId)
       .single();
-    console.log('👤 Worker profile:', worker);
+    //console.log('👤 Worker profile:', worker);
     if (wError || !worker) return res.status(404).json({ success: false, message: 'Worker not found' });
   
     const workerId = worker.worker_id;
-    console.log('👤 Worker ID:', workerId);
+    //console.log('👤 Worker ID:', workerId);
     // 2. Buscar hospital
     const { data: workerHospitals } = await supabase
       .from('workers_hospitals')
       .select('hospital_id')
       .eq('worker_id', workerId);
-    console.log('🏥 Hospital profile:', workerHospitals);
+    //console.log('🏥 Hospital profile:', workerHospitals);
     const hospitalId = workerHospitals?.[0]?.hospital_id || null;
-    console.log('🏥 Hospital ID:', hospitalId);
+    //console.log('🏥 Hospital ID:', hospitalId);
   
     // 3. Buscar especialidad
     const { data: workerSpecialities } = await supabase
@@ -244,9 +244,9 @@ const getFullWorkerProfile = async (req, res) => {
       .select('speciality_id, qualification_level')
       .eq('worker_id', workerId);
     const specialityId = workerSpecialities?.[0]?.speciality_id || null;
-    console.log('🔬 Speciality profile:', workerSpecialities);
+    //('🔬 Speciality profile:', workerSpecialities);
     const qualificationLevel = workerSpecialities?.[0]?.qualification_level || null;
-    console.log('🔬 Speciality ID:', specialityId);
+    //console.log('🔬 Speciality ID:', specialityId);
     res.status(200).json({
       success: true,
       data: {

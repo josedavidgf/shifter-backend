@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 });
 
 async function sendSwapProposalEmail(userId,toEmail, shift, offered) {
-  console.log('📤 Enviando email de propuesta de intercambio a:', userId);
+  //('📤 Enviando email de propuesta de intercambio a:', userId);
   const allow = await shouldSendEmail(userId);
   if (!allow) {
     console.log('📭 Usuario ha desactivado los emails. No se enviará.');
