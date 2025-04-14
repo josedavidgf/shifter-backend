@@ -34,7 +34,8 @@ async function getSwapsForMyShifts(workerId) {
         shift_id,
         date,
         shift_type,
-        shift_label
+        shift_label,
+        shift_comments,
       )
     `)
     .in('shift_id', shiftIds);
@@ -138,6 +139,7 @@ async function getSwapsByRequesterId(workerId) {
         date,
         shift_type,
         shift_label,
+        shift_comments,
         worker_id,
         worker:worker_id (
           name,

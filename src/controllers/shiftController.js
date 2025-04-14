@@ -57,6 +57,7 @@ async function handleCreateShift(req, res) {
             shift_type,
             shift_label,
             speciality_id,
+            shift_comments,
             preferences
         } = req.body;
 
@@ -77,6 +78,7 @@ async function handleCreateShift(req, res) {
             shift_type,
             shift_label,
             state: 'published',
+            shift_comments,
         });
         //console.log('🟢 Shift creado:', newShift);
         //console.log('🟢 Preferences:', preferences);
@@ -122,8 +124,9 @@ async function handleUpdateShift(req, res) {
         const userId = req.user?.sub;
         const shiftId = req.params.id;
         const updates = req.body;
-
+        console.log('🟡 Actualizando turno:', shiftId, updates);
         const updated = await updateShift(shiftId, updates, userId);
+        console.log('🟢 Turno actualizado:', updated);
         res.json({ success: true, data: updated });
     } catch (err) {
         console.error('❌ Error al actualizar turno:', err.message);

@@ -9,7 +9,7 @@ async function createShift(shiftData) {
             throw new Error('Datos obligatorios faltantes para crear el turno');
         }
 
-        //console.log('📤 Insertando turno en Supabase:', shiftData);
+        console.log('📤 Insertando turno en Supabase:', shiftData);
 
         const { data, error } = await supabase
             .from('shifts')
@@ -22,7 +22,7 @@ async function createShift(shiftData) {
             throw new Error(error.message);
         }
 
-        //console.log('✅ Turno insertado correctamente:', data);
+        console.log('✅ Turno insertado correctamente:', data);
         return data;
     }
     catch (err) {
@@ -48,17 +48,17 @@ async function updateShift(shiftId, updates, userId) {
         .select('shift_id, worker_id')
         .eq('shift_id', shiftId)
         .single();
-
+    console.log('🟡 Shift encontrado:', shift);
     if (findError) throw new Error('Turno no encontrado');
 
-
+    console.log('Updateando turno:', shiftId, updates);
     const { data, error } = await supabase
         .from('shifts')
         .update(updates)
         .eq('shift_id', shiftId)
         .select()
         .single();
-
+    console.log('🟢 Turno actualizado:', data);
     if (error) throw new Error(error.message);
     return data;
 }

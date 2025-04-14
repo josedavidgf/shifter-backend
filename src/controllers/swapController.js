@@ -15,15 +15,17 @@ async function handleCreateSwap(req, res) {
         const worker = await getWorkerByUserId(userId);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
 
-        const { shift_id, offered_date, offered_type, offered_label } = req.body;
-
+        const { shift_id, offered_date, offered_type, offered_label,swap_comments } = req.body;
+        console.log('🟡 Datos del swap:', req.body);
         const swap = await createSwap({
             shift_id,
             requester_id: worker.worker_id,
             offered_date,
             offered_type,
             offered_label,
+            swap_comments,
         });
+        console.log('🟢 Swap creado:', swap);
 
         const today = new Date().toISOString().split('T')[0]; // formato YYYY-MM-DD
         if (offered_date < today) {
@@ -51,7 +53,8 @@ async function handleCreateSwap(req, res) {
                 requester_email: worker.email,
                 offered_date,
                 offered_type,
-                offered_label
+                offered_label,
+                swap_comments,
             }
         );
 
