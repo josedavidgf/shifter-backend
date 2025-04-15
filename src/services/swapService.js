@@ -19,11 +19,11 @@ async function getSwapsForMyShifts(workerId) {
     .from('shifts')
     .select('shift_id')
     .eq('worker_id', workerId);
-
+  console.log('🟡 myShifts:', myShifts);
   if (errShifts) throw new Error(errShifts.message);
 
   const shiftIds = myShifts.map(s => s.shift_id);
-
+  console.log('🟡 shiftIds:', shiftIds);
   if (shiftIds.length === 0) return [];
 
   const { data: swaps, error } = await supabase
@@ -35,11 +35,11 @@ async function getSwapsForMyShifts(workerId) {
         date,
         shift_type,
         shift_label,
-        shift_comments,
+        shift_comments
       )
     `)
     .in('shift_id', shiftIds);
-
+  console.log('🟡 swaps:', swaps);
   if (error) throw new Error(error.message);
   return swaps;
 }
@@ -155,6 +155,44 @@ async function getSwapsByRequesterId(workerId) {
   return data;
 }
 
+async function getSwapByIdService (swapId, userId) {
+  console.log('🟡 swapId:', swapId);
+  console.log('🟡 userId:', userId);
+  const { data, error } = await supabase
+    .from('swaps')
+    .select(`
+      *,
+      shift:shift_id (
+        shift_id,
+        date,
+        shift_type,
+        shift_label,
+        worker_id,
+        worker:worker_id (
+          name,
+          surname,
+          email
+        )
+      )
+    `)
+    .eq('swap_id', swapId)
+    .single();
+  console.log('🟢 swap:', data);
+  if (error) throw new Error('No se pudo obtener el swap');
+
+  console.log('requester:',data.requester_id);
+  console.log('worker:', data.shift?.worker_id);
+
+  /* if (![data.requester_id, data.shift?.worker_id].includes(userId)) {
+    const err = new Error('Acceso no autorizado al intercambio');
+    console.log('❌ Acceso no autorizado al intercambio');
+    err.status = 403;
+    throw err;
+  } */
+  console.log('🟢🟢 swap:', data);
+  return data;
+}
+
 
 
 module.exports = {
@@ -163,4 +201,5 @@ module.exports = {
   getSwapsByRequesterId,
   respondToSwap,
   cancelSwap,
+  getSwapByIdService
 };

@@ -1,5 +1,5 @@
-const { createSwap } = require('../services/swapService');
-const {getShiftWithOwnerEmail} = require('../services/shiftService');
+const { createSwap, getSwapByIdService } = require('../services/swapService');
+const { getShiftWithOwnerEmail } = require('../services/shiftService');
 const { getWorkerByUserId } = require('../services/workerService');
 const {
     getSwapsForMyShifts,
@@ -15,7 +15,7 @@ async function handleCreateSwap(req, res) {
         const worker = await getWorkerByUserId(userId);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
 
-        const { shift_id, offered_date, offered_type, offered_label,swap_comments } = req.body;
+        const { shift_id, offered_date, offered_type, offered_label, swap_comments } = req.body;
         console.log('🟡 Datos del swap:', req.body);
         const swap = await createSwap({
             shift_id,
@@ -69,12 +69,12 @@ async function handleGetReceivedSwaps(req, res) {
     try {
         const userId = req.user.sub;
         const worker = await getWorkerByUserId(userId);
-        //console.log('🟡 userId swaps:', userId);
-        //console.log('🟡 worker swaps:', worker);
+        console.log('🟡 userId swaps:', userId);
+        console.log('🟡 worker swaps:', worker);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
 
         const swaps = await getSwapsForMyShifts(worker.worker_id);
-        //console.log('🟡 swaps:', swaps);
+        console.log('🟡 swaps:', swaps);
         res.json({ success: true, data: swaps });
     } catch (err) {
         console.error('❌ Error al cargar swaps recibidos:', err.message);
@@ -124,10 +124,27 @@ async function handleGetSentSwaps(req, res) {
         res.status(500).json({ success: false, message: err.message });
     }
 }
+
+async function handleGetSwapsById(req, res) {
+    const swapId = req.params.id;
+    console.log('🟡🟡🟡 swapId:', swapId);
+    const userId = req.user.sub;
+    console.log('🟡🟡🟡 userId:', userId);
+
+    try {
+        const swap = await getSwapByIdService(swapId, userId);
+        console.log('🟢🟢🟢 Swap encontrado:', swap);
+        return res.json({ data: swap });
+    } catch (err) {
+        const code = err.status || 500;
+        return res.status(code).json({ error: err.message });
+    }
+}
 module.exports = {
     handleCreateSwap,
     handleGetReceivedSwaps,
     handleRespondToSwap,
     handleGetSentSwaps,
-    handleCancelSwap
+    handleCancelSwap,
+    handleGetSwapsById,
 };
