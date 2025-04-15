@@ -5,7 +5,8 @@ const {
     getSwapsForMyShifts,
     cancelSwap,
     respondToSwap,
-    getSwapsByRequesterId
+    getSwapsByRequesterId,
+    getSwapsByShiftIdService,
 } = require('../services/swapService');
 const { sendSwapProposalEmail } = require('../services/emailService');
 
@@ -140,6 +141,17 @@ async function handleGetSwapsById(req, res) {
         return res.status(code).json({ error: err.message });
     }
 }
+async function handleGetSwapsByShiftId(req, res) {
+    const shiftId = req.params.shiftId;
+    try {
+      const swaps = await getSwapsByShiftIdService(shiftId);
+      return res.json({ data: swaps });
+    } catch (err) {
+      console.error('❌ Error al obtener swaps por turno:', err.message);
+      return res.status(500).json({ error: 'No se pudieron cargar los intercambios para este turno' });
+    }
+  }
+
 module.exports = {
     handleCreateSwap,
     handleGetReceivedSwaps,
@@ -147,4 +159,5 @@ module.exports = {
     handleGetSentSwaps,
     handleCancelSwap,
     handleGetSwapsById,
+    handleGetSwapsByShiftId,
 };

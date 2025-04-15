@@ -155,7 +155,7 @@ async function getSwapsByRequesterId(workerId) {
   return data;
 }
 
-async function getSwapByIdService (swapId, userId) {
+async function getSwapByIdService(swapId, userId) {
   console.log('🟡 swapId:', swapId);
   console.log('🟡 userId:', userId);
   const { data, error } = await supabase
@@ -177,10 +177,10 @@ async function getSwapByIdService (swapId, userId) {
     `)
     .eq('swap_id', swapId)
     .single();
-  console.log('🟢 swap:', data);
+  console.log('🟢🟢🟢 swap:', data);
   if (error) throw new Error('No se pudo obtener el swap');
 
-  console.log('requester:',data.requester_id);
+  console.log('requester:', data.requester_id);
   console.log('worker:', data.shift?.worker_id);
 
   /* if (![data.requester_id, data.shift?.worker_id].includes(userId)) {
@@ -193,6 +193,45 @@ async function getSwapByIdService (swapId, userId) {
   return data;
 }
 
+async function getSwapsByShiftIdService(shiftId) {
+  const { data, error } = await supabase
+    .from('swaps')
+    .select(`
+      swap_id,
+      status,
+      shift_id,
+      requester_id,
+      offered_date,
+      offered_type,
+      offered_label,
+      swap_comments,
+      shift:shift_id (
+        shift_id,
+        date,
+        shift_type,
+        shift_label,
+        shift_comments,
+        worker_id,
+        worker:worker_id (
+          name,
+          surname,
+          email
+        )
+      ),
+      requester:requester_id (
+        name,
+        surname,
+        email
+      )
+    `)
+    .eq('shift_id', shiftId)
+    .in('status', ['proposed', 'accepted']);
+  console.log('🟢🟢🟢🟢 swaps:', data);
+
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 
 
 module.exports = {
@@ -201,5 +240,6 @@ module.exports = {
   getSwapsByRequesterId,
   respondToSwap,
   cancelSwap,
-  getSwapByIdService
+  getSwapByIdService,
+  getSwapsByShiftIdService
 };

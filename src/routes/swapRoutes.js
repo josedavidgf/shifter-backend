@@ -7,6 +7,7 @@ const {
     handleCancelSwap,
     handleRespondToSwap,
     handleGetSwapsById,
+    handleGetSwapsByShiftId,
  } = require('../controllers/swapController');
 const protectRoute = require('../middlewares/authMiddleware');
 
@@ -16,5 +17,7 @@ router.get('/sent', protectRoute, handleGetSentSwaps);
 router.get('/:id', protectRoute, handleGetSwapsById);
 router.patch('/:id/cancel', protectRoute, handleCancelSwap);
 router.patch('/:id/respond', protectRoute, handleRespondToSwap);
+router.get('/by-shift/:shiftId', protectRoute, handleGetSwapsByShiftId);
+
 
 module.exports = router;
