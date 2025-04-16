@@ -7,6 +7,7 @@ const {
     respondToSwap,
     getSwapsByRequesterId,
     getSwapsByShiftIdService,
+    getSwapsAcceptedForMyShifts,
 } = require('../services/swapService');
 const { sendSwapProposalEmail } = require('../services/emailService');
 
@@ -83,6 +84,23 @@ async function handleGetReceivedSwaps(req, res) {
     }
 }
 
+async function handleGetAcceptedSwaps(req, res) {
+    try {
+        const userId = req.user.sub;
+        const worker = await getWorkerByUserId(userId);
+        console.log('🟡 userId swaps:', userId);
+        console.log('🟡 worker swaps:', worker);
+        if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
+
+        const swaps = await getSwapsAcceptedForMyShifts(worker.worker_id);
+        console.log('🟡 swaps:', swaps);
+        res.json({ success: true, data: swaps });
+    } catch (err) {
+        console.error('❌ Error al cargar swaps recibidos:', err.message);
+        res.status(500).json({ success: false, message: err.message });
+    }
+}
+
 async function handleCancelSwap(req, res) {
     try {
         const userId = req.user.sub;
@@ -126,6 +144,8 @@ async function handleGetSentSwaps(req, res) {
     }
 }
 
+
+
 async function handleGetSwapsById(req, res) {
     const swapId = req.params.id;
     console.log('🟡🟡🟡 swapId:', swapId);
@@ -160,4 +180,5 @@ module.exports = {
     handleCancelSwap,
     handleGetSwapsById,
     handleGetSwapsByShiftId,
+    handleGetAcceptedSwaps,
 };

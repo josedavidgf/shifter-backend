@@ -44,6 +44,37 @@ async function getSwapsForMyShifts(workerId) {
   return swaps;
 }
 
+async function getSwapsAcceptedForMyShifts(workerId) {
+  const { data: myShifts, error: errShifts } = await supabase
+    .from('shifts')
+    .select('shift_id')
+    .eq('worker_id', workerId);
+  console.log('🟡 myShifts:', myShifts);
+  if (errShifts) throw new Error(errShifts.message);
+
+  const shiftIds = myShifts.map(s => s.shift_id);
+  console.log('🟡 shiftIds:', shiftIds);
+  if (shiftIds.length === 0) return [];
+
+  const { data: swaps, error } = await supabase
+    .from('swaps')
+    .select(`
+      *,
+      shift:shift_id (
+        shift_id,
+        date,
+        shift_type,
+        shift_label,
+        shift_comments
+      )
+    `)
+    .eq('status','accepted')
+    .in('shift_id', shiftIds);
+  console.log('🟡 swaps:', swaps);
+  if (error) throw new Error(error.message);
+  return swaps;
+}
+
 async function cancelSwap(swapId, requesterId) {
   const { data, error } = await supabase
     .from('swaps')
@@ -241,5 +272,6 @@ module.exports = {
   respondToSwap,
   cancelSwap,
   getSwapByIdService,
-  getSwapsByShiftIdService
+  getSwapsByShiftIdService,
+  getSwapsAcceptedForMyShifts
 };
