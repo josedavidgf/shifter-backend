@@ -179,6 +179,8 @@ async function getShiftWithOwnerEmail(shiftId) {
         worker_id,
         workers:worker_id (
           email,
+          name,
+          surname,
           user_id
         )
       `)
@@ -192,6 +194,8 @@ async function getShiftWithOwnerEmail(shiftId) {
         shift_type: data.shift_type,
         shift_label: data.shift_label,
         owner_email: data.workers.email,
+        owner_name: data.workers.name,
+        owner_surname: data.workers.surname,
         owner_user_id: data.workers.user_id
     };
 }

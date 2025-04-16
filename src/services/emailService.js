@@ -25,9 +25,10 @@ async function sendSwapProposalEmail(userId,toEmail, shift, offered) {
     to: toEmail,
     subject: '📩 Nuevo intercambio de turno propuesto',
     html: `
-        <p>Has recibido una propuesta de intercambio de turno de <strong>${offered.requester_email}</strong>.</p>
+        <p>Has recibido una propuesta de intercambio de turno de <strong>${offered.requester_name} ${offered.requester_surname} | ${offered.requester_email}</strong>.</p>
         <p><strong>Tu turno:</strong> ${shift.date} — ${shift.shift_type} (${shift.shift_label})</p>
         <p><strong>Turno ofrecido:</strong> ${offered.offered_date} — ${offered.offered_type} (${offered.offered_label})</p>
+        <p>Comentarios: ${offered.swap_comments}</p> 
         <p>Accede a la app para aceptar o rechazar esta propuesta.</p>
       `
   };
@@ -48,7 +49,7 @@ async function sendSwapAcceptedEmail(userId,toEmail, originalShift, acceptedShif
     to: toEmail,
     subject: '✅ Tu intercambio ha sido aceptado',
     html: `
-        <p>🎉 Tu propuesta de intercambio ha sido <strong>aceptada</strong> por ${originalShift.owner_email}</p>
+        <p>🎉 Tu propuesta de intercambio ha sido <strong>aceptada</strong> por ${originalShift.owner_name} ${originalShift.owner_surname} ${originalShift.owner_email}</p>
   
         <p><strong>Turno original (que querías cambiar):</strong><br>
         ${originalShift.date} — ${originalShift.shift_type} (${originalShift.shift_label})</p>
@@ -75,7 +76,7 @@ async function sendSwapRejectedEmail(userId,toEmail, originalShift, proposedShif
     to: toEmail,
     subject: '❌ Tu intercambio ha sido rechazado',
     html: `
-        <p>Lamentablemente, tu propuesta de intercambio ha sido <strong>rechazada</strong> por ${originalShift.owner_email}.</p>
+        <p>Lamentablemente, tu propuesta de intercambio ha sido <strong>rechazada</strong> por ${originalShift.owner_name} ${originalShift.owner_surname} ${originalShift.owner_email}.</p>
   
         <p><strong>Turno que solicitaste cambiar:</strong><br>
         ${originalShift.date} — ${originalShift.shift_type} (${originalShift.shift_label})</p>

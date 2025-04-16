@@ -148,6 +148,8 @@ async function respondToSwap(swapId, status, ownerId) {
     await sendSwapAcceptedEmail(
       requester.user_id,
       requester.email,
+      requester.name,
+      requester.surname,
       shift,
       updatedSwap
     );

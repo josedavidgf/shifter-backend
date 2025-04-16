@@ -50,9 +50,13 @@ async function handleCreateSwap(req, res) {
         await sendSwapProposalEmail(
             shift.owner_user_id, // receptor user id
             shift.owner_email, // receptor
+            shift.owner_name,
+            shift.owner_surnname,
             shift,             // turno original
             {
                 requester_email: worker.email,
+                requester_name: worker.name,
+                requester_surname: worker.surname,
                 offered_date,
                 offered_type,
                 offered_label,
