@@ -13,7 +13,8 @@ const {
     updateWorkerInfo,
     updateWorkerHospital,
     updateWorkerSpeciality,
-    handleGetWorkerStats
+    handleGetWorkerStats,
+    completeOnboarding
 } = require('../controllers/workerController');
 
 const protectRoute = require('../middlewares/authMiddleware');
@@ -36,6 +37,10 @@ router.delete('/:id', deleteWorker);
 
 router.post('/hospitals', protectRoute, createWorkerHospital);
 router.post('/specialities', protectRoute, createWorkerSpeciality);
+
+router.patch('/complete-onboarding', protectRoute, completeOnboarding);
+
+
 
 
 module.exports = router;

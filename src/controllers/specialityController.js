@@ -1,4 +1,6 @@
 const supabase = require('../config/supabase');
+const specialityService = require('../services/specialityService');
+
 
 const getAllSpecialities = async (req, res) => {
   const { data, error } = await supabase.from('specialities').select('*');
@@ -11,4 +13,16 @@ const getAllSpecialities = async (req, res) => {
   res.status(200).json({ success: true, data });
 };
 
-module.exports = { getAllSpecialities };
+const getSpecialitiesByHospitalId = async (req, res) => {
+  try {
+    const { hospitalId } = req.params;
+    console.log('hospitalId:', hospitalId);
+    const specialities = await specialityService.getSpecialitiesByHospital(hospitalId);
+    console.log('Especialidades:', specialities);
+    res.status(200).json({ success: true, data: specialities });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { getAllSpecialities, getSpecialitiesByHospitalId };

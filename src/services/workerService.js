@@ -50,7 +50,11 @@ async function createWorker(workerData) {
 async function getWorkerByUserId(userId) {
   const { data, error } = await supabase
     .from('workers')
-    .select('*')
+    .select(`
+      *,
+      workers_hospitals ( hospital_id ),
+      workers_specialities ( speciality_id )
+    `)
     .eq('user_id', userId)
     .single();
 
