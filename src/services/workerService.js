@@ -52,8 +52,9 @@ async function getWorkerByUserId(userId) {
     .from('workers')
     .select(`
       *,
-      workers_hospitals ( hospital_id ),
-      workers_specialities ( speciality_id )
+      worker_types ( worker_type_name ),
+      workers_hospitals ( hospital_id, hospitals ( name ) ),
+      workers_specialities ( speciality_id, specialities ( speciality_category, speciality_subcategory ) )
     `)
     .eq('user_id', userId)
     .single();
@@ -88,6 +89,7 @@ async function deleteWorker(workerId) {
 
 // Obtener el hospital asociado a un trabajador
 async function getWorkerHospital(workerId) {
+  console.log('worker:',workerId)
   const { data, error } = await supabase
     .from('workers_hospitals')
     .select('hospital_id')
@@ -95,7 +97,7 @@ async function getWorkerHospital(workerId) {
     .eq('state', 'active')
     .single();
   if (error) throw new Error(error.message);
-  //console.log('🟡 Hospital asociado al trabajador:', data.hospital_id);
+  console.log('🟡 Hospital asociado al trabajador:', data.hospital_id);
   return data;
 }
 
