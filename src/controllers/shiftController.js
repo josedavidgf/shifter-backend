@@ -48,8 +48,8 @@ async function handleCreateShift(req, res) {
         const worker = await getWorkerByUserId(userId);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
 
-        const hospitalInfo = await getWorkerHospital(worker.worker_id);
-        const hospital = hospitalInfo?.hospital_id;
+        //const hospitalInfo = await getWorkerHospital(worker.worker_id);
+        const hospital = worker.workers_hospitals?.[0]?.hospital_id;
         if (!hospital) return res.status(400).json({ success: false, message: 'No hospital assigned to worker' });
 
         const {
@@ -76,7 +76,7 @@ async function handleCreateShift(req, res) {
             speciality_id,
             date,
             shift_type,
-            shift_label,
+            shift_label: 'regular',
             state: 'published',
             shift_comments,
         });
@@ -150,11 +150,15 @@ async function handleGetHospitalShifts(req, res) {
         const userId = req.user?.sub;
         const worker = await getWorkerByUserId(userId);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
-
-        const hospital = await getWorkerHospital(worker.worker_id);
-        if (!hospital) return res.status(404).json({ success: false, message: 'Hospital not found' });
-
-        const shifts = await getHospitalShifts(hospital.hospital_id, worker.worker_id, worker.worker_type_id);
+        console.log('worker:', worker);
+        console.log('hospitalId:',worker.workers_hospitals?.[0]?.hospital_id);
+        console.log('hospital:',worker.workers_hospitals);
+        //console.log('hospital:', hospital)
+        if (!worker.workers_hospitals) return res.status(404).json({ success: false, message: 'Hospital not found' });
+        console.log('hospitalId:',worker.workers_hospitals?.[0]?.hospital_id);
+        console.log('workerId:', worker.worker_id);
+        console.log('workerType:',worker.worker_type_id)
+        const shifts = await getHospitalShifts(worker.workers_hospitals?.[0]?.hospital_id, worker.worker_id, worker.worker_type_id);
         res.json({ success: true, data: shifts });
     } catch (err) {
         console.error('❌ Error al obtener turnos del hospital:', err.message);

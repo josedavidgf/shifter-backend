@@ -13,7 +13,7 @@ const shiftRoutes = require('./src/routes/shiftRoutes');
 const swapRoutes = require('./src/routes/swapRoutes');
 const userPreferencesRoutes = require('./src/routes/userPreferencesRoutes');
 const accessCodeRoutes = require('./src/routes/accessCodeRoutes');
-
+const swapPreferencesRoutes = require('./src/routes/swapPreferencesRoutes');
 
 
 // Configurar CORS
@@ -37,6 +37,7 @@ app.use('/api/shifts', shiftRoutes);
 app.use('/api/swaps', swapRoutes);
 app.use('/api/preferences', userPreferencesRoutes);
 app.use('/api/access-codes', accessCodeRoutes);
+app.use('/api/swap-preferences', swapPreferencesRoutes);
 
 
 const PORT = process.env.PORT || 4000;

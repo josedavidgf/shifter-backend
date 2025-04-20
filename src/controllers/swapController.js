@@ -1,4 +1,4 @@
-const { createSwap, getSwapByIdService } = require('../services/swapService');
+const { getSwapByIdService,createSwapWithMatching } = require('../services/swapService');
 const { getShiftWithOwnerEmail } = require('../services/shiftService');
 const { getWorkerByUserId } = require('../services/workerService');
 const {
@@ -11,6 +11,7 @@ const {
 } = require('../services/swapService');
 const { sendSwapProposalEmail } = require('../services/emailService');
 
+
 async function handleCreateSwap(req, res) {
     try {
         const userId = req.user.sub;
@@ -19,7 +20,14 @@ async function handleCreateSwap(req, res) {
 
         const { shift_id, offered_date, offered_type, offered_label, swap_comments } = req.body;
         console.log('🟡 Datos del swap:', req.body);
-        const swap = await createSwap({
+
+        const today = new Date().toISOString().split('T')[0]; // formato YYYY-MM-DD
+        if (offered_date < today) {
+            return res.status(400).json({ success: false, message: 'La fecha del swap no puede ser anterior a hoy.' });
+        }
+
+        // 🚀 Crea swap usando lógica de matching
+        const swap = await createSwapWithMatching({
             shift_id,
             requester_id: worker.worker_id,
             offered_date,
@@ -27,44 +35,42 @@ async function handleCreateSwap(req, res) {
             offered_label,
             swap_comments,
         });
+
         console.log('🟢 Swap creado:', swap);
 
-        const today = new Date().toISOString().split('T')[0]; // formato YYYY-MM-DD
-        if (offered_date < today) {
-            return res.status(400).json({ success: false, message: 'La fecha del swap no puede ser anterior a hoy.' });
-        }
-
-        // 🔍 Obtener detalles completos del turno
-        const shift = await getShiftWithOwnerEmail(shift_id);
-        if (!shift || !shift.owner_email) {
-            console.warn('⚠️ No se pudo obtener el email del receptor');
-            return res.status(201).json({ success: true, data: swap });
-        }
-        //console.log('🟡 shift:', shift);
-        if (!shift || !shift.owner_user_id) {
-            console.warn('⚠️ No se pudo obtener el userId del receptor');
-            return res.status(201).json({ success: true, data: swap });
-        }
-
-        // Enviar correo al trabajador con la propuesta de swap
-        await sendSwapProposalEmail(
-            shift.owner_user_id, // receptor user id
-            shift.owner_email, // receptor
-            shift.owner_name,
-            shift.owner_surnname,
-            shift,             // turno original
-            {
-                requester_email: worker.email,
-                requester_name: worker.name,
-                requester_surname: worker.surname,
-                offered_date,
-                offered_type,
-                offered_label,
-                swap_comments,
+        // 🔍 Solo enviar email de propuesta si el estado sigue en 'proposed'
+        if (swap.status === 'proposed') {
+            const shift = await getShiftWithOwnerEmail(shift_id);
+            if (!shift || !shift.owner_email) {
+                console.warn('⚠️ No se pudo obtener el email del receptor');
+                return res.status(201).json({ success: true, data: swap });
             }
-        );
+            if (!shift || !shift.owner_user_id) {
+                console.warn('⚠️ No se pudo obtener el userId del receptor');
+                return res.status(201).json({ success: true, data: swap });
+            }
+
+            // Enviar correo al trabajador con la propuesta de swap
+            await sendSwapProposalEmail(
+                shift.owner_user_id,
+                shift.owner_email,
+                shift.owner_name,
+                shift.owner_surnname,
+                shift,
+                {
+                    requester_email: worker.email,
+                    requester_name: worker.name,
+                    requester_surname: worker.surname,
+                    offered_date,
+                    offered_type,
+                    offered_label,
+                    swap_comments,
+                }
+            );
+        }
 
         res.status(201).json({ success: true, data: swap });
+
     } catch (err) {
         console.error('❌ Error al crear intercambio:', err.message);
         res.status(500).json({ success: false, message: err.message });
