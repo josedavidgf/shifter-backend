@@ -6,7 +6,8 @@ const {
     getHospitalShifts,
     createShiftPreferences,
     getShiftPreferencesByShiftId,
-    replaceShiftPreferences
+    replaceShiftPreferences,
+    getShiftsPublishedByWorkerId
 } = require('../services/shiftService');
 const { getWorkerByUserId, getWorkerHospital } = require('../services/workerService');
 const supabase = require('../config/supabase');
@@ -106,6 +107,22 @@ async function handleGetMyShifts(req, res) {
         res.status(500).json({ success: false, message: 'Error interno del servidor' });
     }
 }
+
+async function handleGetMyShiftsPublished(req, res) {
+    try {
+        const userId = req.user?.sub; // O req.user.id si lo tienes así
+        const worker = await getWorkerByUserId(userId);
+        if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
+        console.log('⚠️⚠️⚠️⚠️⚠️', worker);
+        const shifts = await getShiftsPublishedByWorkerId(worker.worker_id);
+        console.log('⚠️⚠️⚠️⚠️⚠️', shifts);
+        res.json({ success: true, data: shifts });
+    } catch (err) {
+        console.error('❌ Error al obtener mis turnos:', err.message);
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+}
+
 async function handleGetShiftById(req, res) {
     const shiftId = req.params.id;
 
@@ -225,6 +242,7 @@ module.exports = {
     handleGetHospitalShifts,
     handleGetShiftPreferences,
     handleUpdateShiftPreferences,
-    handleExpireOldShifts
+    handleExpireOldShifts,
+    handleGetMyShiftsPublished
 };
 
