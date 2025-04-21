@@ -111,11 +111,34 @@ async function handleGetShiftById(req, res) {
 
     const { data, error } = await supabase
         .from('shifts')
-        .select('*')
+        .select(`
+      shift_id,
+      date,
+      shift_type,
+      shift_label,
+      shift_comments,
+      worker:worker_id (
+        worker_id,
+        name,
+        surname,
+        swap_preferences (
+          preference_id,
+          date,
+          preference_type
+        )
+      )
+    `)
         .eq('shift_id', shiftId)
         .single();
 
     if (error) return res.status(404).json({ success: false, message: error.message });
+    // ⚡ Aquí filtramos preferencias vencidas
+    const today = new Date().toISOString().split('T')[0];
+
+    if (data?.worker?.swap_preferences) {
+        data.worker.swap_preferences = data.worker.swap_preferences.filter(pref => pref.date >= today);
+    }
+
     res.json({ success: true, data });
 }
 
@@ -151,13 +174,13 @@ async function handleGetHospitalShifts(req, res) {
         const worker = await getWorkerByUserId(userId);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
         console.log('worker:', worker);
-        console.log('hospitalId:',worker.workers_hospitals?.[0]?.hospital_id);
-        console.log('hospital:',worker.workers_hospitals);
+        console.log('hospitalId:', worker.workers_hospitals?.[0]?.hospital_id);
+        console.log('hospital:', worker.workers_hospitals);
         //console.log('hospital:', hospital)
         if (!worker.workers_hospitals) return res.status(404).json({ success: false, message: 'Hospital not found' });
-        console.log('hospitalId:',worker.workers_hospitals?.[0]?.hospital_id);
+        console.log('hospitalId:', worker.workers_hospitals?.[0]?.hospital_id);
         console.log('workerId:', worker.worker_id);
-        console.log('workerType:',worker.worker_type_id)
+        console.log('workerType:', worker.worker_type_id)
         const shifts = await getHospitalShifts(worker.workers_hospitals?.[0]?.hospital_id, worker.worker_id, worker.worker_type_id);
         res.json({ success: true, data: shifts });
     } catch (err) {
