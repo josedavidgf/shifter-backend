@@ -31,6 +31,18 @@ async function createShift(shiftData) {
     }
 }
 
+async function getShiftsPublishedByWorkerId(workerId) {
+    const { data, error } = await supabase
+        .from('shifts')
+        .select('*')
+        .eq('worker_id', workerId)
+        .eq('state', 'published')
+        .order('date', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data;
+}
+
 async function getShiftsByWorkerId(workerId) {
     const { data, error } = await supabase
         .from('shifts')
@@ -211,5 +223,6 @@ module.exports = {
     createShiftPreferences,
     getShiftPreferencesByShiftId,
     replaceShiftPreferences,
-    getShiftWithOwnerEmail
+    getShiftWithOwnerEmail,
+    getShiftsPublishedByWorkerId
 };
