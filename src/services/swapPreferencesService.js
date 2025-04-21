@@ -18,6 +18,7 @@ async function getMySwapPreferences(workerId) {
     .from('swap_preferences')
     .select('*')
     .eq('worker_id', workerId)
+    .gte('date', today) // ⚡ Solo preferencias futuras o de hoy
     .order('date', { ascending: true });
 
   if (error) throw new Error(error.message);

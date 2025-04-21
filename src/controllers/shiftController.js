@@ -111,11 +111,34 @@ async function handleGetShiftById(req, res) {
 
     const { data, error } = await supabase
         .from('shifts')
-        .select('*')
+        .select(`
+      shift_id,
+      date,
+      shift_type,
+      shift_label,
+      shift_comments,
+      worker:worker_id (
+        worker_id,
+        name,
+        surname,
+        swap_preferences (
+          preference_id,
+          date,
+          preference_type
+        )
+      )
+    `)
         .eq('shift_id', shiftId)
         .single();
 
     if (error) return res.status(404).json({ success: false, message: error.message });
+    // ⚡ Aquí filtramos preferencias vencidas
+    const today = new Date().toISOString().split('T')[0];
+
+    if (data?.worker?.swap_preferences) {
+        data.worker.swap_preferences = data.worker.swap_preferences.filter(pref => pref.date >= today);
+    }
+
     res.json({ success: true, data });
 }
 
