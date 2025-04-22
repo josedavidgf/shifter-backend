@@ -22,11 +22,9 @@ async function getSwapsForMyShifts(workerId) {
     .from('shifts')
     .select('shift_id')
     .eq('worker_id', workerId);
-  console.log('🟡 myShifts:', myShifts);
   if (errShifts) throw new Error(errShifts.message);
 
   const shiftIds = myShifts.map(s => s.shift_id);
-  console.log('🟡 shiftIds:', shiftIds);
   if (shiftIds.length === 0) return [];
 
   const { data: swaps, error } = await supabase
@@ -42,7 +40,6 @@ async function getSwapsForMyShifts(workerId) {
       )
     `)
     .in('shift_id', shiftIds);
-  console.log('🟡 swaps:', swaps);
   if (error) throw new Error(error.message);
   return swaps;
 }
@@ -214,8 +211,6 @@ async function getSwapsByRequesterId(workerId) {
 }
 
 async function getSwapByIdService(swapId, userId) {
-  console.log('🟡 swapId:', swapId);
-  console.log('🟡 userId:', userId);
   const { data, error } = await supabase
     .from('swaps')
     .select(`
@@ -235,11 +230,7 @@ async function getSwapByIdService(swapId, userId) {
     `)
     .eq('swap_id', swapId)
     .single();
-  console.log('🟢🟢🟢 swap:', data);
   if (error) throw new Error('No se pudo obtener el swap');
-
-  console.log('requester:', data.requester_id);
-  console.log('worker:', data.shift?.worker_id);
 
   /* if (![data.requester_id, data.shift?.worker_id].includes(userId)) {
     const err = new Error('Acceso no autorizado al intercambio');
@@ -247,7 +238,6 @@ async function getSwapByIdService(swapId, userId) {
     err.status = 403;
     throw err;
   } */
-  console.log('🟢🟢 swap:', data);
   return data;
 }
 
@@ -284,7 +274,6 @@ async function getSwapsByShiftIdService(shiftId) {
     `)
     .eq('shift_id', shiftId)
     .in('status', ['proposed', 'accepted']);
-  console.log('🟢🟢🟢🟢 swaps:', data);
 
   if (error) throw new Error(error.message);
   return data;
@@ -324,15 +313,10 @@ async function createSwapWithMatching(data) {
   // 3. Buscar preferencias del owner
   const preferences = await getMySwapPreferences(ownerWorkerId);
 
-  console.log('preferences_owner', preferences);
-  console.log('offered_date', offered_date);
-  console.log('offered_type', offered_type);
-
   const match = preferences.find(pref =>
     pref.date === offered_date &&
     pref.preference_type === offered_type
   );
-
 
   if (match) {
     console.log('🟢🔵 Simple Swap automático encontrado');

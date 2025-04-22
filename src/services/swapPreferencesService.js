@@ -14,6 +14,7 @@ async function createSwapPreference(preferenceData) {
 
 // Obtener las preferencias del usuario
 async function getMySwapPreferences(workerId) {
+  const today = new Date().toISOString().split('T')[0]; // formato YYYY-MM-DD
   const { data, error } = await supabase
     .from('swap_preferences')
     .select('*')

@@ -19,8 +19,6 @@ async function handleCreateSwap(req, res) {
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
 
         const { shift_id, offered_date, offered_type, offered_label, swap_comments } = req.body;
-        console.log('🟡 Datos del swap:', req.body);
-
         const today = new Date().toISOString().split('T')[0]; // formato YYYY-MM-DD
         if (offered_date < today) {
             return res.status(400).json({ success: false, message: 'La fecha del swap no puede ser anterior a hoy.' });
@@ -81,12 +79,9 @@ async function handleGetReceivedSwaps(req, res) {
     try {
         const userId = req.user.sub;
         const worker = await getWorkerByUserId(userId);
-        console.log('🟡 userId swaps:', userId);
-        console.log('🟡 worker swaps:', worker);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
 
         const swaps = await getSwapsForMyShifts(worker.worker_id);
-        console.log('🟡 swaps:', swaps);
         res.json({ success: true, data: swaps });
     } catch (err) {
         console.error('❌ Error al cargar swaps recibidos:', err.message);
@@ -98,12 +93,9 @@ async function handleGetAcceptedSwaps(req, res) {
     try {
         const userId = req.user.sub;
         const worker = await getWorkerByUserId(userId);
-        console.log('🟡 userId swaps:', userId);
-        console.log('🟡 worker swaps:', worker);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
 
         const swaps = await getSwapsAcceptedForMyShifts(worker.worker_id);
-        console.log('🟡 swaps:', swaps);
         res.json({ success: true, data: swaps });
     } catch (err) {
         console.error('❌ Error al cargar swaps recibidos:', err.message);
@@ -158,9 +150,7 @@ async function handleGetSentSwaps(req, res) {
 
 async function handleGetSwapsById(req, res) {
     const swapId = req.params.id;
-    console.log('🟡🟡🟡 swapId:', swapId);
     const userId = req.user.sub;
-    console.log('🟡🟡🟡 userId:', userId);
 
     try {
         const swap = await getSwapByIdService(swapId, userId);
