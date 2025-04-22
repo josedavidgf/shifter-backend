@@ -67,6 +67,11 @@ async function getSwapsAcceptedForMyShifts(workerId) {
         shift_type,
         shift_label,
         shift_comments
+      ),
+      requester:requester_id (
+        worker_id,
+        name,
+        surname
       )
     `)
     .eq('status', 'accepted')
@@ -319,9 +324,9 @@ async function createSwapWithMatching(data) {
   // 3. Buscar preferencias del owner
   const preferences = await getMySwapPreferences(ownerWorkerId);
 
-  console.log('preferences_owner',preferences);
-  console.log('offered_date',offered_date);
-  console.log('offered_type',offered_type);
+  console.log('preferences_owner', preferences);
+  console.log('offered_date', offered_date);
+  console.log('offered_type', offered_type);
 
   const match = preferences.find(pref =>
     pref.date === offered_date &&
