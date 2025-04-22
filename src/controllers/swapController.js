@@ -96,6 +96,7 @@ async function handleGetAcceptedSwaps(req, res) {
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
 
         const swaps = await getSwapsAcceptedForMyShifts(worker.worker_id);
+        console.log('swaps',swaps);
         res.json({ success: true, data: swaps });
     } catch (err) {
         console.error('❌ Error al cargar swaps recibidos:', err.message);

@@ -60,10 +60,15 @@ async function getSwapsAcceptedForMyShifts(workerId) {
       *,
       shift:shift_id (
         shift_id,
+        worker_id,
         date,
         shift_type,
         shift_label,
-        shift_comments
+        shift_comments,
+         worker: worker_id (
+        worker_id,
+        name,
+        surname)
       ),
       requester:requester_id (
         worker_id,
@@ -82,11 +87,17 @@ async function getSwapsAcceptedForMyShifts(workerId) {
       *,
       shift:shift_id (
         shift_id,
+        worker_id,
         date,
         shift_type,
         shift_label,
-        shift_comments
+        shift_comments,
+        worker: worker_id (
+        worker_id,
+        name,
+        surname
       )
+    )
     `)
     .eq('status', 'accepted')
     .eq('requester_id', workerId);
