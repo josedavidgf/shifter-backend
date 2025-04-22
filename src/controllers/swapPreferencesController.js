@@ -7,15 +7,8 @@ async function handleCreateSwapPreference(req, res) {
         const userId = req.user.sub;
         const worker = await getWorkerByUserId(userId);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
-        console.log('worker:', worker);
         const workerId = worker.worker_id; // Asegúrate de que este dato venga en el token/session
         const { date, preference_type, hospital_id, speciality_id } = req.body;
-
-        console.log('date', date);
-        console.log('worker_id:', workerId);
-        console.log('preference_type:', preference_type);
-        console.log('hospital_id:', hospital_id);
-        console.log('speciality_id:', speciality_id);
 
         const newPreference = await createSwapPreference({
             worker_id: workerId,
@@ -37,7 +30,6 @@ async function handleGetMySwapPreferences(req, res) {
         const userId = req.user.sub;
         const worker = await getWorkerByUserId(userId);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
-        console.log('worker:', worker);
         const workerId = worker.worker_id; // Asegúrate de que este dato venga en el token/session
         const preferences = await getMySwapPreferences(workerId);
         return res.status(200).json(preferences);
