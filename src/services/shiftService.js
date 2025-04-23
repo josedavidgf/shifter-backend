@@ -100,25 +100,67 @@ async function removeShift(shiftId, userId) {
 }
 
 async function getHospitalShifts(hospitalId, excludeWorkerId, workerTypeId) {
+    // 1. Obtener los turnos publicados
     const { data, error } = await supabase
         .from('shifts')
         .select(`
-      *,
-      worker:worker_id (
-        name,
-        surname,
-        worker_id,
-        worker_type_id
-      )
-    `)
+        *,
+        worker:worker_id (
+          name,
+          surname,
+          worker_id,
+          worker_type_id
+        )
+      `)
         .eq('hospital_id', hospitalId)
         .eq('state', 'published')
-        .neq ('worker_id', excludeWorkerId)
+        .neq('worker_id', excludeWorkerId)
         .order('date', { ascending: true });
 
-    if (error) throw new Error(error.message);
-    return data.filter(shift => shift.worker?.worker_type_id === workerTypeId);
+    if (error) throw new Error(error.message); // <- mover arriba
+
+    // 2. Obtener todos los swaps aceptados
+    const { data: acceptedSwaps, error: swapsError } = await supabase
+        .from('swaps')
+        .select('shift_id')
+        .eq('status', 'accepted');
+
+    if (swapsError) throw new Error(swapsError.message);
+
+    const acceptedShiftIds = acceptedSwaps.map(s => s.shift_id);
+
+    // 3. Buscar a qué worker_id pertenecen esos turnos (es decir, los publishers originales)
+    const { data: shiftsData, error: shiftsError } = await supabase
+        .from('shifts')
+        .select('shift_id, worker_id')
+        .in('shift_id', acceptedShiftIds);
+
+    if (shiftsError) throw new Error(shiftsError.message);
+
+    // 4. Contabilizar por worker_id cuántos swaps aceptados han tenido como publishers
+    const swapsByPublisher = {};
+    shiftsData.forEach(shift => {
+        const publisherId = shift.worker_id;
+        if (!publisherId) return;
+        swapsByPublisher[publisherId] = (swapsByPublisher[publisherId] || 0) + 1;
+    });
+
+    // 5. Enriquecer los turnos con el dato
+    const enrichedData = data.map(shift => {
+        const stat = swapsByPublisher[shift.worker_id] || 0;
+        return {
+            ...shift,
+            worker: {
+                ...shift.worker,
+                swapsAcceptedAsPublisher: stat,
+            },
+        };
+    });
+
+    // 6. Devolver los que coinciden con el tipo de worker actual
+    return enrichedData.filter(shift => shift.worker?.worker_type_id === workerTypeId);
 }
+
 
 
 async function createShiftPreferences(shiftId, preferences) {
@@ -132,7 +174,7 @@ async function createShiftPreferences(shiftId, preferences) {
     }));
     //console.log('enriched:', enriched);
     const today = new Date().toISOString().split('T')[0]; // formato YYYY-MM-DD
-    
+
     /* if (p.preferred_date && p.preferred_date < today) {
         throw new Error('No puedes proponer fechas anteriores en las preferencias');
     } */
