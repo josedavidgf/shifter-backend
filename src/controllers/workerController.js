@@ -312,29 +312,76 @@ const updateWorkerHospital = async (req, res) => {
   res.status(200).json({ success: true });
 };
 const updateWorkerSpeciality = async (req, res) => {
-  const userId = req.user?.sub;
-  const { speciality_id, qualification_level } = req.body;
-
-  const { data: worker } = await supabase
+  const { speciality_id, qualification_level, experience_years } = req.body;
+  const userId = req.user.sub;
+  console.log('AQUIIIII');
+  console.log('👤 User ID:', userId);
+  console.log('👤 Request body:', req.body);
+  // Buscar el worker actual
+  const { data: worker, error: workerError } = await supabase
     .from('workers')
     .select('worker_id')
     .eq('user_id', userId)
     .single();
 
-  const { error: delErr } = await supabase
+  if (workerError || !worker) {
+    return res.status(404).json({ success: false, message: 'Worker not found' });
+  }
+  console.log('👤 Worker ID:', worker.worker_id);
+  const { data: currentSpec, error: specError } = await supabase
     .from('workers_specialities')
-    .delete()
+    .select('*')
+    .eq('worker_id', worker.worker_id)
+    .maybeSingle();
+
+  if (specError) {
+    return res.status(500).json({ success: false, message: 'Error fetching current speciality' });
+  }
+
+  if (!currentSpec) {
+    console.log('🔍 No hay especialidad actual: se insertará nueva');
+  }
+  console.log('👤 Current speciality:', currentSpec);
+
+  // Si no hay ningún campo a modificar, responde con éxito
+  if (
+    speciality_id === undefined &&
+    qualification_level === undefined &&
+    experience_years === undefined
+  ) {
+    return res.status(200).json({ success: true, message: 'No changes submitted' });
+  }
+  console.log('👤 New speciality:', { speciality_id, qualification_level, experience_years });
+
+  // Determinar si hay cambios reales
+  const changes = {};
+  if (speciality_id !== undefined && speciality_id !== currentSpec.speciality_id) {
+    changes.speciality_id = speciality_id;
+  }
+  if (qualification_level !== undefined && qualification_level !== currentSpec.qualification_level) {
+    changes.qualification_level = qualification_level;
+  }
+  if (experience_years !== undefined && experience_years !== currentSpec.experience_years) {
+    changes.experience_years = experience_years;
+  }
+  console.log('👤 Changes detected:', changes);
+  if (Object.keys(changes).length === 0) {
+    return res.status(200).json({ success: true, message: 'No changes detected' });
+  }
+  console.log('👤 Updating speciality:', changes);
+  // Actualizar solo los campos modificados
+  const { error: updateError } = await supabase
+    .from('workers_specialities')
+    .update(changes)
     .eq('worker_id', worker.worker_id);
 
-  const { error: insErr } = await supabase
-    .from('workers_specialities')
-    .insert({ worker_id: worker.worker_id, speciality_id, qualification_level });
-
-  if (delErr || insErr)
+  if (updateError) {
     return res.status(400).json({ success: false, message: 'Error updating speciality' });
-
-  res.status(200).json({ success: true });
+  }
+  console.log('👤 Speciality updated successfully');
+  return res.status(200).json({ success: true });
 };
+
 
 const completeOnboarding = async (req, res) => {
   try {
