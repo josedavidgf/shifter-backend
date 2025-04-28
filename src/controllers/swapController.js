@@ -47,18 +47,19 @@ async function handleCreateSwap(req, res) {
                 console.warn('⚠️ No se pudo obtener el userId del receptor');
                 return res.status(201).json({ success: true, data: swap });
             }
+            const requester_email = worker.email;
+            const requester_name = worker.name;
+            const requester_surname = worker.surname;
 
             // Enviar correo al trabajador con la propuesta de swap
             await sendSwapProposalEmail(
                 shift.owner_user_id,
                 shift.owner_email,
-                shift.owner_name,
-                shift.owner_surnname,
                 shift,
                 {
-                    requester_email: worker.email,
-                    requester_name: worker.name,
-                    requester_surname: worker.surname,
+                    requester_email: requester_email,
+                    requester_name: requester_name,
+                    requester_surname: requester_surname,
                     offered_date,
                     offered_type,
                     offered_label,
