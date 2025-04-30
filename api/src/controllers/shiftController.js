@@ -83,9 +83,9 @@ async function handleGetMyShiftsPublished(req, res) {
         const userId = req.user?.sub; // O req.user.id si lo tienes así
         const worker = await getWorkerByUserId(userId);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
-        console.log('⚠️⚠️⚠️⚠️⚠️', worker);
+        //console.log('⚠️⚠️⚠️⚠️⚠️', worker);
         const shifts = await getShiftsPublishedByWorkerId(worker.worker_id);
-        console.log('⚠️⚠️⚠️⚠️⚠️', shifts);
+        //console.log('⚠️⚠️⚠️⚠️⚠️', shifts);
         res.json({ success: true, data: shifts });
     } catch (err) {
         console.error('❌ Error al obtener mis turnos:', err.message);
@@ -134,9 +134,9 @@ async function handleUpdateShift(req, res) {
         const userId = req.user?.sub;
         const shiftId = req.params.id;
         const updates = req.body;
-        console.log('🟡 Actualizando turno:', shiftId, updates);
+        //console.log('🟡 Actualizando turno:', shiftId, updates);
         const updated = await updateShift(shiftId, updates, userId);
-        console.log('🟢 Turno actualizado:', updated);
+        //console.log('🟢 Turno actualizado:', updated);
         res.json({ success: true, data: updated });
     } catch (err) {
         console.error('❌ Error al actualizar turno:', err.message);
@@ -160,14 +160,14 @@ async function handleGetHospitalShifts(req, res) {
         const userId = req.user?.sub;
         const worker = await getWorkerByUserId(userId);
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
-        console.log('worker:', worker);
-        console.log('hospitalId:', worker.workers_hospitals?.[0]?.hospital_id);
-        console.log('hospital:', worker.workers_hospitals);
+        //console.log('worker:', worker);
+        //console.log('hospitalId:', worker.workers_hospitals?.[0]?.hospital_id);
+        //console.log('hospital:', worker.workers_hospitals);
         //console.log('hospital:', hospital)
         if (!worker.workers_hospitals) return res.status(404).json({ success: false, message: 'Hospital not found' });
-        console.log('hospitalId:', worker.workers_hospitals?.[0]?.hospital_id);
-        console.log('workerId:', worker.worker_id);
-        console.log('workerType:', worker.worker_type_id)
+        //console.log('hospitalId:', worker.workers_hospitals?.[0]?.hospital_id);
+        //console.log('workerId:', worker.worker_id);
+        //console.log('workerType:', worker.worker_type_id)
         const shifts = await getHospitalShifts(worker.workers_hospitals?.[0]?.hospital_id, worker.worker_id, worker.worker_type_id);
         res.json({ success: true, data: shifts });
     } catch (err) {

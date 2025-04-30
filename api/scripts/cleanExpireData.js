@@ -1,5 +1,5 @@
 require('dotenv').config();
-const supabase = require('../api/config/supabase');
+const supabase = require('../config/supabase');
 
 async function expireOldShifts() {
   const today = new Date().toISOString().split('T')[0];
@@ -38,10 +38,10 @@ async function expireOldSwapPreferences() {
   try {
     await expireOldShifts();
     await expireOldSwapPreferences();
-    console.log(`🕐 Cronjob ejecutado a: ${new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })}`);
+    console.log(`🕐 Limpieza ejecutada a: ${new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })}`);
     process.exit(0);
   } catch (err) {
-    console.error('❌ Cronjob falló:', err.message);
+    console.error('❌ Fallo limpieza:', err.message);
     process.exit(1);
   }
 })();

@@ -16,9 +16,9 @@ const getAllSpecialities = async (req, res) => {
 const getSpecialitiesByHospitalId = async (req, res) => {
   try {
     const { hospitalId } = req.params;
-    console.log('hospitalId:', hospitalId);
+    //console.log('hospitalId:', hospitalId);
     const specialities = await specialityService.getSpecialitiesByHospital(hospitalId);
-    console.log('Especialidades:', specialities);
+    //console.log('Especialidades:', specialities);
     res.status(200).json({ success: true, data: specialities });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
