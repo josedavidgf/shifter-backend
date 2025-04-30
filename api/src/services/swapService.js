@@ -1,8 +1,8 @@
 const supabase = require('../config/supabase');
-const { sendSwapAcceptedEmail, sendSwapRejectedEmail } = require('../services/emailService');
-const { getShiftWithOwnerEmail } = require('../services/shiftService');
-const { getWorkerById } = require('../services/workerService');
-const { getMySwapPreferences, deleteSwapPreference } = require('../services/swapPreferencesService');
+const { sendSwapAcceptedEmail, sendSwapRejectedEmail } = require('./emailService');
+const { getShiftWithOwnerEmail } = require('./shiftService');
+const { getWorkerById } = require('./workerService');
+const { getMySwapPreferences, deleteSwapPreference } = require('./swapPreferencesService');
 
 
 // TODO: Verificar si esta función sigue siendo necesaria después del MVP.

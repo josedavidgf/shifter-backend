@@ -1,6 +1,6 @@
 const { get } = require('express/lib/response');
 const supabase = require('../config/supabase');
-const { getWorkerByUserId } = require('../services/workerService');
+const { getWorkerByUserId } = require('./workerService');
 
 async function createShift(shiftData) {
     try {
