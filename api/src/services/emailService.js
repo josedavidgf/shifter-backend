@@ -1,6 +1,6 @@
 // src/services/emailService.js
 const nodemailer = require('nodemailer');
-const { shouldSendEmail } = require('./userPreferencesService'); // Ajusta el path si es necesario
+const { shouldSendSwapEmail , shouldSendReminderEmail} = require('./userPreferencesService'); // Ajusta el path si es necesario
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,       // ej: smtp.zoho.eu
@@ -14,14 +14,14 @@ const transporter = nodemailer.createTransport({
 
 async function sendSwapProposalEmail(userId,toEmail, shift, offered) {
   //('📤 Enviando email de propuesta de intercambio a:', userId);
-  const allow = await shouldSendEmail(userId);
+  const allow = await shouldSendSwapEmail(userId);
   if (!allow) {
     console.log('📭 Usuario ha desactivado los emails. No se enviará.');
     return;
   }
 
   const mailOptions = {
-    from: `"Shifter" <${process.env.SMTP_USER}>`,
+    from: `"Tanda" <${process.env.SMTP_USER}>`,
     to: toEmail,
     subject: '📩 Nuevo intercambio de turno propuesto',
     html: `
@@ -38,14 +38,14 @@ async function sendSwapProposalEmail(userId,toEmail, shift, offered) {
 
 async function sendSwapAcceptedEmail(userId,toEmail, originalShift, acceptedShift) {
 
-  const allow = await shouldSendEmail(userId);
+  const allow = await shouldSendSwapEmail(userId);
   if (!allow) {
     console.log('📭 Usuario ha desactivado los emails. No se enviará.');
     return;
   }
 
   const mailOptions = {
-    from: `"Shifter" <${process.env.SMTP_USER}>`,
+    from: `"Tanda" <${process.env.SMTP_USER}>`,
     to: toEmail,
     subject: '✅ Tu intercambio ha sido aceptado',
     html: `
@@ -65,14 +65,14 @@ async function sendSwapAcceptedEmail(userId,toEmail, originalShift, acceptedShif
 }
 async function sendSwapRejectedEmail(userId,toEmail, originalShift, proposedShift) {
 
-  const allow = await shouldSendEmail(userId);
+  const allow = await shouldSendSwapEmail(userId);
   if (!allow) {
     console.log('📭 Usuario ha desactivado los emails. No se enviará.');
     return;
   }
 
   const mailOptions = {
-    from: `"Shifter" <${process.env.SMTP_USER}>`,
+    from: `"Tanda" <${process.env.SMTP_USER}>`,
     to: toEmail,
     subject: '❌ Tu intercambio ha sido rechazado',
     html: `
@@ -90,10 +90,36 @@ async function sendSwapRejectedEmail(userId,toEmail, originalShift, proposedShif
 
   await transporter.sendMail(mailOptions);
 }
+async function sendReminderEmail(toEmail, shift, user) {
+  const allow = await shouldSendReminderEmail(user.id);
+  if (!allow) {
+    console.log(`📭 Recordatorio no enviado a ${toEmail}: preferencias desactivadas.`);
+    return;
+  }
+
+  const mailOptions = {
+    from: `"Tanda" <${process.env.SMTP_USER}>`,
+    to: toEmail,
+    subject: `📆 Recordatorio: tienes turno el ${shift.date}`,
+    html: `
+      <p>Hola ${user.name || ''},</p>
+      <p>Este es un recordatorio de que <strong>mañana</strong> tienes un turno programado:</p>
+      <ul>
+        <li><strong>Fecha:</strong> ${shift.date}</li>
+        <li><strong>Turno:</strong> ${shift.shift_type}</li>
+        <li><strong>Hospital:</strong> ${shift.hospital_name || '—'}</li>
+      </ul>
+      <p>¡Gracias por tu compromiso!</p>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+}
 
 
 module.exports = {
   sendSwapProposalEmail,
   sendSwapAcceptedEmail,
-  sendSwapRejectedEmail
+  sendSwapRejectedEmail,
+  sendReminderEmail
 };

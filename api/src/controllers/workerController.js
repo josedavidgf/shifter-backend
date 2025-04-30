@@ -42,8 +42,8 @@ const createWorker = async (req, res) => {
       console.error('❌ Usuario no autenticado');
       return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
     }
-    console.log('👤 Usuario autenticado:', req.user);
-    console.log('👤 Datos del trabajador:', req.body);
+    //console.log('👤 Usuario autenticado:', req.user);
+    //console.log('👤 Datos del trabajador:', req.body);
     const { workerTypeId } = req.body;
 
     // Validación básica
@@ -51,7 +51,7 @@ const createWorker = async (req, res) => {
       console.error('❌ Campos obligatorios faltantes:', { workerTypeId });
       return res.status(400).json({ success: false, message: 'Faltan datos obligatorios' });
     }
-    console.log('🧪 Guardando trabajador:', workerTypeId);
+    //console.log('🧪 Guardando trabajador:', workerTypeId);
     // Inspección de entrada
     //console.log('📨 Body recibido:', { name, surname, workerType });
     //console.log('🔐 Usuario autenticado:', req.user);
@@ -65,7 +65,7 @@ const createWorker = async (req, res) => {
       onboarding_completed: false
     };
 
-    console.log('🧪 Datos del trabajador:', newWorker);
+    //console.log('🧪 Datos del trabajador:', newWorker);
 
     //console.log('📤 Insertando en Supabase:', newWorker);
 
@@ -112,7 +112,7 @@ const createWorkerHospital = async (req, res) => {
 
 const createWorkerSpeciality = async (req, res) => {
   const { workerId, specialityId, qualificationLevel, experienceYears } = req.body;
-  console.log('🧪 Guardando worker-speciality 1:', { workerId, specialityId, qualificationLevel, experienceYears });
+  //console.log('🧪 Guardando worker-speciality 1:', { workerId, specialityId, qualificationLevel, experienceYears });
   if (!workerId || !specialityId || !qualificationLevel || !experienceYears) {
     console.error('❌ Campos obligatorios faltantes:', { workerId, specialityId, qualificationLevel });
     return res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -314,9 +314,6 @@ const updateWorkerHospital = async (req, res) => {
 const updateWorkerSpeciality = async (req, res) => {
   const { speciality_id, qualification_level, experience_years } = req.body;
   const userId = req.user.sub;
-  console.log('AQUIIIII');
-  console.log('👤 User ID:', userId);
-  console.log('👤 Request body:', req.body);
   // Buscar el worker actual
   const { data: worker, error: workerError } = await supabase
     .from('workers')
@@ -327,7 +324,6 @@ const updateWorkerSpeciality = async (req, res) => {
   if (workerError || !worker) {
     return res.status(404).json({ success: false, message: 'Worker not found' });
   }
-  console.log('👤 Worker ID:', worker.worker_id);
   const { data: currentSpec, error: specError } = await supabase
     .from('workers_specialities')
     .select('*')
@@ -341,7 +337,6 @@ const updateWorkerSpeciality = async (req, res) => {
   if (!currentSpec) {
     console.log('🔍 No hay especialidad actual: se insertará nueva');
   }
-  console.log('👤 Current speciality:', currentSpec);
 
   // Si no hay ningún campo a modificar, responde con éxito
   if (
@@ -351,7 +346,6 @@ const updateWorkerSpeciality = async (req, res) => {
   ) {
     return res.status(200).json({ success: true, message: 'No changes submitted' });
   }
-  console.log('👤 New speciality:', { speciality_id, qualification_level, experience_years });
 
   // Determinar si hay cambios reales
   const changes = {};
@@ -364,11 +358,9 @@ const updateWorkerSpeciality = async (req, res) => {
   if (experience_years !== undefined && experience_years !== currentSpec.experience_years) {
     changes.experience_years = experience_years;
   }
-  console.log('👤 Changes detected:', changes);
   if (Object.keys(changes).length === 0) {
     return res.status(200).json({ success: true, message: 'No changes detected' });
   }
-  console.log('👤 Updating speciality:', changes);
   // Actualizar solo los campos modificados
   const { error: updateError } = await supabase
     .from('workers_specialities')
@@ -378,7 +370,6 @@ const updateWorkerSpeciality = async (req, res) => {
   if (updateError) {
     return res.status(400).json({ success: false, message: 'Error updating speciality' });
   }
-  console.log('👤 Speciality updated successfully');
   return res.status(200).json({ success: true });
 };
 

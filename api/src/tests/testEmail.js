@@ -1,5 +1,5 @@
 // testEmail.js
-require('dotenv').config();
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
@@ -10,7 +10,14 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
   }
+  
 });
+console.log('SMTP config:', {
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  user: process.env.SMTP_USER
+});
+
 
 async function main() {
   try {

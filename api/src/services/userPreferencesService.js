@@ -13,26 +13,25 @@ async function getUserPreferences(userId) {
 }
 
 async function upsertUserPreferences(userId, preferences) {
-    //console.log('Upserting user preferences:', userId, preferences);
-
     const { data, error } = await supabase        
-        .from('user_preferences')
-        .upsert({
-            user_id: userId,
-            receive_emails: preferences.email_notifications, 
-        })
-        .select()
-        .single();
-    //console.log('User preferences upserted:', data);
+      .from('user_preferences')
+      .upsert({
+        user_id: userId,
+        receive_emails_swap: preferences.receive_emails_swap,
+        receive_emails_reminders: preferences.receive_emails_reminders,
+      }, { onConflict: 'user_id' }) // aseguras que actúa como upsert
+      .select()
+      .single();
+  
     if (error) throw new Error(error.message);
-    //console.log('User preferences upserted:', data);
     return data;
-}
+  }
+  
 
-async function shouldSendEmail(userId) {
+async function shouldSendSwapEmail(userId) {
     const { data, error } = await supabase
       .from('user_preferences')
-      .select('receive_emails')
+      .select('receive_emails_swap')
       .eq('user_id', userId)
       .single();
   
@@ -41,11 +40,26 @@ async function shouldSendEmail(userId) {
       return false; // Por seguridad: no enviar si no sabemos.
     }
   
-    return data.receive_emails === true;
+    return data.receive_emails_swap === true;
+  }
+  async function shouldSendReminderEmail(userId) {
+    const { data, error } = await supabase
+      .from('user_preferences')
+      .select('receive_emails_reminders')
+      .eq('user_id', userId)
+      .single();
+  
+    if (error) {
+      console.error('❌ Error al obtener preferencias de reminder email:', error.message);
+      return false;
+    }
+  
+    return data.receive_emails_reminders === true;
   }
 
 module.exports = {
     getUserPreferences,
     upsertUserPreferences,
-    shouldSendEmail
+    shouldSendSwapEmail,
+    shouldSendReminderEmail
 };

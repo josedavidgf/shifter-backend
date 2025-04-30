@@ -34,7 +34,7 @@ async function handleCreateSwap(req, res) {
             swap_comments,
         });
 
-        console.log('🟢 Swap creado:', swap);
+        //console.log('🟢 Swap creado:', swap);
 
         // 🔍 Solo enviar email de propuesta si el estado sigue en 'proposed'
         if (swap.status === 'proposed') {
@@ -97,7 +97,7 @@ async function handleGetAcceptedSwaps(req, res) {
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
 
         const swaps = await getSwapsAcceptedForMyShifts(worker.worker_id);
-        console.log('swaps',swaps);
+        //console.log('swaps',swaps);
         res.json({ success: true, data: swaps });
     } catch (err) {
         console.error('❌ Error al cargar swaps recibidos:', err.message);
@@ -156,7 +156,7 @@ async function handleGetSwapsById(req, res) {
 
     try {
         const swap = await getSwapByIdService(swapId, userId);
-        console.log('🟢🟢🟢 Swap encontrado:', swap);
+        //console.log('🟢🟢🟢 Swap encontrado:', swap);
         return res.json({ data: swap });
     } catch (err) {
         const code = err.status || 500;

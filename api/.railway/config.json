@@ -1,0 +1,15 @@
+{
+    "crons": [
+      {
+        "name": "cleanExpiredData",
+        "command": "npm run cron:clean",
+        "schedule": "0 22 * * *"
+      },
+      {
+        "name": "sendShiftReminders",
+        "command": "npm run cron:send-reminders",
+        "schedule": "4 4 * * *"
+      }
+    ]
+  }
+  
