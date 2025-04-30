@@ -1,3 +1,28 @@
-node_modules
-# Keep environment variables out of version control
+# Node modules
+**/node_modules/
+node_modules/
+
+# Logs
+**/*.log
+
+# Env files
+**/.env
 .env
+
+# System
+.DS_Store
+
+# Editor config
+.vscode/
+.idea/
+
+# Railway generated files
+railway.json
+
+# Lockfiles (opcional: si no quieres trackearlos)
+# /package-lock.json          <-- este ya no lo usas
+# /api/package-lock.json     <-- ⚠️ solo ignóralo si no quieres subirlo
+# /cronjob/package-lock.json <-- ⚠️ idem
+
+# Mac and Linux trash
+.Trashes
