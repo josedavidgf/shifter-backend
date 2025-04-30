@@ -12,36 +12,6 @@ const {
 const { getWorkerByUserId, getWorkerHospital } = require('../services/workerService');
 const supabase = require('../config/supabase');
 
-async function handleExpireOldShifts(req, res) {
-    try {
-        const today = new Date().toISOString().split('T')[0];
-        //console.log('📆 Hoy es:', today);
-
-        const { data: candidates, error: readError } = await supabase
-            .from('shifts')
-            .select('*')
-            .lt('date', today)
-            .eq('state', 'published');
-
-        if (readError) throw new Error(readError.message);
-
-        //console.log('🟡 Candidatos a expirar:', candidates);
-
-        const { error: updateError } = await supabase
-            .from('shifts')
-            .update({ state: 'expired' })
-            .lt('date', today)
-            .eq('state', 'published');
-
-        if (updateError) throw new Error(updateError.message);
-
-        res.json({ success: true, message: 'Turnos expirados actualizados' });
-    } catch (err) {
-        console.error('❌ Error al caducar turnos:', err.message);
-        res.status(500).json({ success: false, message: err.message });
-    }
-}
-
 
 async function handleCreateShift(req, res) {
     try {
