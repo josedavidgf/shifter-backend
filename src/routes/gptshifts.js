@@ -44,7 +44,8 @@ Mi pregunta: ${message}`,
 
     res.json({ reply: response.choices[0].message.content });
   } catch (error) {
-    console.error('Error al contactar con OpenAI:', error);
+    // Mostrar el error completo que devuelve OpenAI
+    console.error('❌ Error al contactar con OpenAI:', error.response?.data || error.message || error);
     res.status(500).json({ error: 'Error al procesar la solicitud con GPT' });
   }
 });
