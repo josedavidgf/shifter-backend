@@ -3,6 +3,7 @@ const { sendSwapAcceptedEmail, sendSwapRejectedEmail } = require('./emailService
 const { getShiftWithOwnerEmail } = require('./shiftService');
 const { getWorkerById } = require('./workerService');
 const { getMySwapPreferences, deleteSwapPreference } = require('./swapPreferencesService');
+const { applySwapToMonthlySchedule } = require('./swapScheduleService');
 
 
 // TODO: Verificar si esta función sigue siendo necesaria después del MVP.
@@ -160,11 +161,9 @@ async function respondToSwap(swapId, status, ownerId) {
     );
   }
 
-
   if (status === 'accepted') {
     const shiftId = updatedSwap.shift_id;
 
-    // 1. Marcar el turno como intercambiado
     const { error: shiftError } = await supabase
       .from('shifts')
       .update({ state: 'swapped' })
@@ -172,12 +171,26 @@ async function respondToSwap(swapId, status, ownerId) {
 
     if (shiftError) throw new Error('No se pudo actualizar el estado del turno');
 
-    // 2. Obtener emails y datos    
+    const { data: fullShift, error: shiftFetchError } = await supabase
+      .from('shifts')
+      .select('shift_id, date, shift_type, worker_id')
+      .eq('shift_id', shiftId)
+      .single();
+
+    if (shiftFetchError) throw new Error('No se pudo obtener el turno para actualizar calendario');
+
+    // Enriquecemos el swap
+    updatedSwap.shift = fullShift;
+
+    // 🧠 Aplicamos lógica de calendarización
+    console.log('updatedSwap:', updatedSwap)
+    await applySwapToMonthlySchedule(updatedSwap);
+
     const [shift, requester] = await Promise.all([
       getShiftWithOwnerEmail(shiftId),
       getWorkerById(updatedSwap.requester_id)
     ]);
-    // 3. Enviar email al solicitante
+
     await sendSwapAcceptedEmail(
       requester.user_id,
       requester.email,
@@ -186,13 +199,10 @@ async function respondToSwap(swapId, status, ownerId) {
       shift,
       updatedSwap
     );
-
   }
 
   return updatedSwap;
 }
-
-
 
 
 async function getSwapsByRequesterId(workerId) {
@@ -363,6 +373,20 @@ async function createSwapWithMatching(data) {
       shiftWithEmail,
       updatedSwap
     );
+
+    // Añadir el turno embebido (como en respondToSwap)
+    const { data: fullShift, error: shiftFetchError } = await supabase
+      .from('shifts')
+      .select('shift_id, date, shift_type, worker_id')
+      .eq('shift_id', shift_id)
+      .single();
+
+    if (shiftFetchError) throw new Error('No se pudo obtener el turno para aplicar el swap');
+
+    updatedSwap.shift = fullShift;
+
+    // ✅ Aplicar el swap a monthly_schedules
+    await applySwapToMonthlySchedule(updatedSwap);
 
     return updatedSwap;
   }
