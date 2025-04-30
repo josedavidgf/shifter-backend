@@ -212,7 +212,6 @@ module.exports = {
     handleGetHospitalShifts,
     handleGetShiftPreferences,
     handleUpdateShiftPreferences,
-    handleExpireOldShifts,
     handleGetMyShiftsPublished
 };
 
