@@ -8,7 +8,7 @@
       {
         "name": "sendShiftReminders",
         "command": "npm run cron:send-reminders",
-        "schedule": "4 4 * * *"
+        "schedule": "0 22 * * *"
       }
     ]
   }

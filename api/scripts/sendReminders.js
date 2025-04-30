@@ -1,60 +1,34 @@
+// sendReminders.js (versión simplificada con monthly_schedules como fuente única)
 require('dotenv').config();
 const supabase = require('../src/config/supabase');
 const { sendReminderEmail } = require('../src/services/emailService');
 
 async function sendShiftReminders() {
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-  console.log(`📅 Buscando turnos para enviar recordatorios del día: ${tomorrow}`);
+  console.log(`📅 Enviando recordatorios de turnos para: ${tomorrow}`);
 
-  // 1. Turnos programados (schedules)
-  const { data: schedules, error: scheduleError } = await supabase
-    .from('schedules')
-    .select('worker_id, date, shift_type, workers!inner(email, name)')
-    .eq('date', tomorrow);
+  // Obtener todos los trabajadores con turnos propios o recibidos para mañana
+  const { data: shifts, error } = await supabase
+    .from('monthly_schedules')
+    .select('worker_id, date, shift_type, source, workers:worker_id (email, name, user_id)')
+    .eq('date', tomorrow)
+    .in('source', ['manual', 'received_swap']);
 
-  if (scheduleError) throw new Error('Error obteniendo schedules: ' + scheduleError.message);
+  if (error) throw new Error('Error obteniendo turnos: ' + error.message);
 
-  // 2. Swaps aceptados con turno recibido para mañana
-  const { data: swaps, error: swapError } = await supabase
-    .from('swaps')
-    .select('receiver_id, offered_date, offered_type, receiver:receivers(email, name)')
-    .eq('status', 'accepted')
-    .eq('offered_date', tomorrow);
+  const reminders = (shifts || [])
+    .filter(s => s.workers?.email)
+    .map(s => ({
+      user_id: s.workers.user_id,
+      to: s.workers.email,
+      user: { name: s.workers.name },
+      shift: {
+        date: s.date,
+        shift_type: s.shift_type,
+      }
+    }));
 
-  if (swapError) throw new Error('Error obteniendo swaps: ' + swapError.message);
-
-  // 3. Preparar lista combinada
-  const reminders = [];
-
-  (schedules || []).forEach((s) => {
-    if (s.workers?.email) {
-      reminders.push({
-        user_id: s.worker_id,
-        to: s.workers.email,
-        user: { name: s.workers.name },
-        shift: {
-          date: s.date,
-          shift_type: s.shift_type,
-        }
-      });
-    }
-  });
-
-  (swaps || []).forEach((s) => {
-    if (s.receiver?.email) {
-      reminders.push({
-        user_id: s.receiver_id,
-        to: s.receiver.email,
-        user: { name: s.receiver.name },
-        shift: {
-          date: s.offered_date,
-          shift_type: s.offered_type,
-        }
-      });
-    }
-  });
-
-  console.log(`✉️ Enviando ${reminders.length} emails de recordatorio...`);
+  console.log(`✉️ Preparados ${reminders.length} recordatorios...`);
 
   for (const r of reminders) {
     try {
@@ -64,7 +38,7 @@ async function sendShiftReminders() {
     }
   }
 
-  console.log('✅ Recordatorios enviados.');
+  console.log('✅ Proceso completado.');
 }
 
 (async () => {
@@ -72,7 +46,7 @@ async function sendShiftReminders() {
     await sendShiftReminders();
     process.exit(0);
   } catch (err) {
-    console.error('❌ Error en recordatorio de turnos:', err.message);
+    console.error('❌ Error general en recordatorios:', err.message);
     process.exit(1);
   }
 })();

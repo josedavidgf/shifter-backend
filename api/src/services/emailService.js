@@ -100,14 +100,13 @@ async function sendReminderEmail(toEmail, shift, user) {
   const mailOptions = {
     from: `"Tanda" <${process.env.SMTP_USER}>`,
     to: toEmail,
-    subject: `📆 Recordatorio: tienes turno el ${shift.date}`,
+    subject: `📆 Recordatorio: tienes turno el ${shift.date} de ${shift.shift_type}`,
     html: `
       <p>Hola ${user.name || ''},</p>
       <p>Este es un recordatorio de que <strong>mañana</strong> tienes un turno programado:</p>
       <ul>
         <li><strong>Fecha:</strong> ${shift.date}</li>
         <li><strong>Turno:</strong> ${shift.shift_type}</li>
-        <li><strong>Hospital:</strong> ${shift.hospital_name || '—'}</li>
       </ul>
       <p>¡Gracias por tu compromiso!</p>
     `
