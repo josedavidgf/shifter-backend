@@ -49,41 +49,10 @@ async function handleDeleteSwapPreference(req, res) {
         return res.status(500).json({ error: error.message });
     }
 }
-async function handleExpireOldSwapPreferences(req, res) {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-  
-      const { data: oldPreferences, error: readError } = await supabase
-        .from('swap_preferences')
-        .select('id')
-        .lt('date', today);
-  
-      if (readError) throw new Error(readError.message);
-  
-      if (oldPreferences.length === 0) {
-        return res.json({ success: true, message: 'No hay preferencias antiguas a eliminar' });
-      }
-  
-      const idsToDelete = oldPreferences.map((p) => p.id);
-  
-      const { error: deleteError } = await supabase
-        .from('swap_preferences')
-        .delete()
-        .in('id', idsToDelete);
-  
-      if (deleteError) throw new Error(deleteError.message);
-  
-      res.json({ success: true, message: `Se eliminaron ${idsToDelete.length} preferencias antiguas` });
-    } catch (err) {
-      console.error('❌ Error al eliminar swap preferences antiguas:', err.message);
-      res.status(500).json({ success: false, message: err.message });
-    }
-  }
   
 
 module.exports = {
     handleCreateSwapPreference,
     handleGetMySwapPreferences,
     handleDeleteSwapPreference,
-    handleExpireOldSwapPreferences
 };

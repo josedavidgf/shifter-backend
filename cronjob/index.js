@@ -38,7 +38,7 @@ async function expireOldSwapPreferences() {
   try {
     await expireOldShifts();
     await expireOldSwapPreferences();
-    console.log('🎯 Cronjob completado con éxito');
+    console.log(`🕐 Cronjob ejecutado a: ${new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })}`);
     process.exit(0);
   } catch (err) {
     console.error('❌ Cronjob falló:', err.message);
