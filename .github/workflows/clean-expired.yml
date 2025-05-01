@@ -1,0 +1,30 @@
+name: Clean Expired Data
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # todos los días a las 02:00 AM UTC
+  workflow_dispatch:
+
+jobs:
+  clean-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./api
+
+      - name: Run cleaner script
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run cron:clean
+        working-directory: ./api
