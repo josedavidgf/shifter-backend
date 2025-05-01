@@ -4,18 +4,20 @@ const supabase = require('../config/supabase');
 async function registerUser(req, res) {
     const { email, password } = req.body;
     try {
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
-        if (signUpError) throw new Error(signUpError.message);
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                emailRedirectTo: 'https://shifter-frontend.vercel.app/auth/callback',
+            },
+        }); if (signUpError) throw new Error(signUpError.message);
 
-        // Hacer login automáticamente después del registro
-        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
-        if (loginError) throw new Error(loginError.message);
-
-        res.status(201).json({ success: true, data: loginData });
+        res.status(201).json({ success: true, message: 'Verificación enviada. Revisa tu correo.' });
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });
     }
 }
+
 
 // Iniciar Sesión (Login)
 async function loginUser(req, res) {
@@ -87,31 +89,31 @@ async function logoutUser(req, res) {
 
 async function handleResendVerification(req, res) {
     try {
-      const userId = req.user.sub;
-  
-      // 1. Obtener el email del usuario desde Supabase
-      const { data: userData, error: getUserError } = await supabase.auth.admin.getUserById(userId);
-      if (getUserError || !userData?.user?.email) {
-        throw new Error(getUserError?.message || 'No se pudo obtener el email del usuario');
-      }
-  
-      // 2. Reenviar el correo de verificación
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: userData.user.email,
-      });
-  
-      if (error) {
-        throw new Error(error.message);
-      }
-  
-      res.status(200).json({ success: true, message: 'Correo de verificación reenviado' });
+        const userId = req.user.sub;
+
+        // 1. Obtener el email del usuario desde Supabase
+        const { data: userData, error: getUserError } = await supabase.auth.admin.getUserById(userId);
+        if (getUserError || !userData?.user?.email) {
+            throw new Error(getUserError?.message || 'No se pudo obtener el email del usuario');
+        }
+
+        // 2. Reenviar el correo de verificación
+        const { error } = await supabase.auth.resend({
+            type: 'signup',
+            email: userData.user.email,
+        });
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        res.status(200).json({ success: true, message: 'Correo de verificación reenviado' });
     } catch (err) {
-      console.error('❌ Error al reenviar verificación:', err.message);
-      res.status(500).json({ success: false, message: err.message });
+        console.error('❌ Error al reenviar verificación:', err.message);
+        res.status(500).json({ success: false, message: err.message });
     }
-  }
-  
+}
+
 
 
 module.exports = {
