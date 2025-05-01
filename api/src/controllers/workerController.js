@@ -425,7 +425,7 @@ const initializeWorker = async (req, res) => {
     const { data: existingWorker, error: checkError } = await supabase
       .from('workers')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', user.sub)
       .single();
 
     if (checkError && checkError.code !== 'PGRST116') {
@@ -441,8 +441,8 @@ const initializeWorker = async (req, res) => {
     const { error: insertError } = await supabase
       .from('workers')
       .insert({
-        user_id: user.id,
-        email,
+        user_id: user.sub,
+        email: email,
         state: 'pending',
         onboarding_completed: false,
       });
