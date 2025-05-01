@@ -424,7 +424,7 @@ const initializeWorker = async (req, res) => {
     // Verificar si ya existe un worker
     const { data: existingWorker, error: checkError } = await supabase
       .from('workers')
-      .select('id')
+      .select('worker_id')
       .eq('user_id', user.sub)
       .single();
 
