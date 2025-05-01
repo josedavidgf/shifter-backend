@@ -1,5 +1,5 @@
 require('dotenv').config();
-const supabase = require('../config/supabase');
+const supabase = require('../src/config/supabase');
 
 async function expireOldShifts() {
   const today = new Date().toISOString().split('T')[0];
@@ -17,18 +17,18 @@ async function expireOldSwapPreferences() {
   const today = new Date().toISOString().split('T')[0];
   const { data, error: readError } = await supabase
     .from('swap_preferences')
-    .select('id')
+    .select('preference_id')
     .lt('date', today);
 
   if (readError) throw new Error(readError.message);
 
-  const ids = data.map((d) => d.id);
+  const ids = data.map((d) => d.preference_id);
   if (ids.length === 0) return;
 
   const { error: deleteError } = await supabase
     .from('swap_preferences')
     .delete()
-    .in('id', ids);
+    .in('preference_id', ids);
 
   if (deleteError) throw new Error(deleteError.message);
   console.log(`🧹 Borradas ${ids.length} swapPreferences antiguas`);

@@ -139,6 +139,8 @@ const createWorkerSpeciality = async (req, res) => {
 
 const getMyWorkerProfile = async (req, res) => {
   const userId = req.user?.sub;
+  console.log('🧪 userId recibido:', userId);
+
 
   if (!userId) {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -146,11 +148,18 @@ const getMyWorkerProfile = async (req, res) => {
 
   try {
     const worker = await workerService.getWorkerByUserId(userId);
+  
+    if (!worker) {
+      // ⚠️ Importante: control explícito de usuario sin onboarding completado
+      return res.status(200).json({ success: true, data: null });
+    }
+  
     return res.status(200).json({ success: true, data: worker });
   } catch (err) {
     console.error('❌ Error al obtener el worker:', err.message);
     return res.status(500).json({ success: false, message: err.message });
   }
+  
 };
 
 const checkWorkerOnboardingCompletion = async (req, res) => {
