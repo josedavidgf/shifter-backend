@@ -15,13 +15,13 @@ const {
     updateWorkerSpeciality,
     handleGetWorkerStats,
     completeOnboarding,
-    getWorkerStatusOverview
+    initializeWorker
 } = require('../controllers/workerController');
 
 const protectRoute = require('../middlewares/authMiddleware');
 const router = express.Router();
 
-router.get('/post-login-check', protectRoute, getWorkerStatusOverview);
+router.post('/init', protectRoute, initializeWorker);
 router.get('/me', protectRoute, getMyWorkerProfile);
 router.get('/me/full', protectRoute, getFullWorkerProfile);
 router.get('/me/completion', protectRoute, checkWorkerOnboardingCompletion);

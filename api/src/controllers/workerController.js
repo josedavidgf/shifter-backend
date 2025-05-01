@@ -410,62 +410,48 @@ const completeOnboarding = async (req, res) => {
   }
 };
 
-const getWorkerStatusOverview = async (req, res) => {
-  const userId = req.user?.sub;
-  console.log('userId', userId);
-  if (!userId) {
-    return res.status(401).json({ success: false, message: 'Unauthorized' });
-  }
-
+const initializeWorker = async (req, res) => {
   try {
-    // Buscar worker por user_id
-    const { data: worker, error: workerError } = await supabase
+    const user = req.user;
+    const email = user?.email;
+
+    if (!user || !user.id) {
+      return res.status(401).json({ success: false, message: 'No autorizado' });
+    }
+
+    // Verificar si ya existe un worker
+    const { data: existingWorker, error: checkError } = await supabase
       .from('workers')
-      .select('*')
-      .eq('user_id', userId)
+      .select('id')
+      .eq('user_id', user.id)
       .single();
 
-    // Si no hay worker, devolvemos exists: false
-    if (!worker) {
-      return res.status(200).json({
-        success: true,
-        data: {
-          exists: false
-        }
-      });
+    if (checkError && checkError.code !== 'PGRST116') {
+      // PGRST116 = row not found (OK en este contexto)
+      return res.status(500).json({ success: false, message: checkError.message });
     }
-    console.log('worker', worker);
-    const workerId = worker.worker_id;
 
-    // Chequear hospital
-    const { data: hospitals } = await supabase
-      .from('workers_hospitals')
-      .select('id')
-      .eq('worker_id', workerId);
-    console.log('Hospital', hospitals)
-    // Chequear especialidad
-    const { data: specialities } = await supabase
-      .from('workers_specialities')
-      .select('id')
-      .eq('worker_id', workerId);
-    console.log('specialities', specialities)
+    if (existingWorker) {
+      return res.status(200).json({ success: true, message: 'Ya existe worker para este usuario' });
+    }
 
-    // Response con status completo
-    return res.status(200).json({
-      success: true,
-      data: {
-        exists: true,
-        onboarding_completed: !!worker.onboarding_completed,
-        hasWorkerType: !!worker.worker_type_id,
-        hasHospital: hospitals?.length > 0,
-        hasSpeciality: specialities?.length > 0,
-        hasName: !!worker.name && !!worker.surname,
-        hasPhone: !!worker.mobile_phone && !!worker.mobile_country_code
-      }
-    });
+    // Crear nuevo worker
+    const { error: insertError } = await supabase
+      .from('workers')
+      .insert({
+        user_id: user.id,
+        email,
+        state: 'pending',
+        onboarding_completed: false,
+      });
+
+    if (insertError) {
+      return res.status(500).json({ success: false, message: insertError.message });
+    }
+
+    return res.status(201).json({ success: true, message: 'Worker creado correctamente' });
 
   } catch (err) {
-    console.error('❌ Error en post-login-check:', err.message);
     return res.status(500).json({ success: false, message: err.message });
   }
 };
@@ -488,5 +474,5 @@ module.exports = {
   updateWorkerSpeciality,
   handleGetWorkerStats,
   completeOnboarding,
-  getWorkerStatusOverview
+  initializeWorker
 };
