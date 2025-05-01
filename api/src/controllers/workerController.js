@@ -43,14 +43,10 @@ const createWorker = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
     }
 
-    if (!data || data.length === 0) {
-      return res.status(404).json({ success: false, message: 'No existe worker previo para este usuario.' });
-    }
-    
     //console.log('👤 Usuario autenticado:', req.user);
     //console.log('👤 Datos del trabajador:', req.body);
     const { workerTypeId } = req.body;
-
+    console.log(workerTypeId)
     // Validación básica
     if (!workerTypeId) {
       console.error('❌ Campos obligatorios faltantes:', { workerTypeId });
@@ -79,14 +75,12 @@ const createWorker = async (req, res) => {
       .insert(newWorker)
       .select();
  */
-
-      const updateData = {
-        worker_type_id: workerTypeId,
-        state: 'active',
-      };
-      const { data, error } = await supabase
+    const { data, error } = await supabase
       .from('workers')
-      .update(updateData)
+      .update({
+        worker_type_id: workerTypeId,
+        state: 'active'
+      })
       .eq('user_id', req.user.sub)
       .select();
 
@@ -163,18 +157,18 @@ const getMyWorkerProfile = async (req, res) => {
 
   try {
     const worker = await workerService.getWorkerByUserId(userId);
-  
+
     if (!worker) {
       // ⚠️ Importante: control explícito de usuario sin onboarding completado
       return res.status(200).json({ success: true, data: null });
     }
-  
+
     return res.status(200).json({ success: true, data: worker });
   } catch (err) {
     console.error('❌ Error al obtener el worker:', err.message);
     return res.status(500).json({ success: false, message: err.message });
   }
-  
+
 };
 
 const checkWorkerOnboardingCompletion = async (req, res) => {
@@ -418,6 +412,7 @@ const completeOnboarding = async (req, res) => {
 
 const getWorkerStatusOverview = async (req, res) => {
   const userId = req.user?.sub;
+  console.log('userId', userId);
   if (!userId) {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
@@ -428,7 +423,7 @@ const getWorkerStatusOverview = async (req, res) => {
       .from('workers')
       .select('*')
       .eq('user_id', userId)
-      .maybeSingle();
+      .single();
 
     // Si no hay worker, devolvemos exists: false
     if (!worker) {
@@ -439,7 +434,7 @@ const getWorkerStatusOverview = async (req, res) => {
         }
       });
     }
-
+    console.log('worker', worker);
     const workerId = worker.worker_id;
 
     // Chequear hospital
@@ -447,12 +442,13 @@ const getWorkerStatusOverview = async (req, res) => {
       .from('workers_hospitals')
       .select('id')
       .eq('worker_id', workerId);
-
+    console.log('Hospital', hospitals)
     // Chequear especialidad
     const { data: specialities } = await supabase
       .from('workers_specialities')
       .select('id')
       .eq('worker_id', workerId);
+    console.log('specialities', specialities)
 
     // Response con status completo
     return res.status(200).json({

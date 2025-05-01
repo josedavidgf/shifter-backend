@@ -4,34 +4,30 @@ const supabase = require('../config/supabase');
 async function registerUser(req, res) {
     const { email, password } = req.body;
     try {
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: 'https://pre-app.apptanda.com/auth/callback',
-        },
-      });
-  
-      if (signUpError) throw new Error(signUpError.message);
-      console.log(data);
-  
-      // ✅ Crear worker con estado inicial
-      await supabase
-        .from('workers')
-        .insert([{
-          user_id: signUpData.user.id,
-          email,
-          state: 'pending',
-          onboarding_completed: false,
-          created_at: new Date()
-        }]);
-        
-      res.status(201).json({ success: true, message: 'Verificación enviada. Revisa tu correo.' });
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                emailRedirectTo: 'https://pre-app.apptanda.com/auth/callback',
+            },
+        });
+
+        if (signUpError) throw new Error(signUpError.message);
+        console.log(data);
+
+        // ✅ Crear worker con estado inicial
+        const insertResponse = await supabase
+            .from('workers')
+            .insert([{ user_id: signUpData.user.id, email, state: 'pending', onboarding_completed: false, created_at: new Date() }]);
+
+        console.log('📥 insertResponse:', insertResponse);
+
+        res.status(201).json({ success: true, message: 'Verificación enviada. Revisa tu correo.' });
     } catch (err) {
-      res.status(400).json({ success: false, message: err.message });
+        res.status(400).json({ success: false, message: err.message });
     }
-  }
-  
+}
+
 
 
 // Iniciar Sesión (Login)
