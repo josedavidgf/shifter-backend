@@ -17,14 +17,20 @@ const accessCodeRoutes = require('./src/routes/accessCodeRoutes');
 const swapPreferencesRoutes = require('./src/routes/swapPreferencesRoutes');
 const gptShiftsRoutes = require('./src/routes/gptshifts'); // 🆕 Añadido
 
-// Configurar CORS
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://shifter-frontend.vercel.app'
-  ],
-  credentials: true
+  origin: function (origin, callback) {
+    // Permite peticiones sin origen (como Postman) o si el origen está permitido
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS: ' + origin));
+    }
+  },
+  credentials: true,
 }));
+
 
 // Middleware JSON
 app.use(express.json());

@@ -8,7 +8,7 @@ async function registerUser(req, res) {
             email,
             password,
             options: {
-                emailRedirectTo: 'https://shifter-frontend.vercel.app/auth/callback',
+                emailRedirectTo: 'https://pre-app.apptanda.com/auth/callback',
             },
         }); if (signUpError) throw new Error(signUpError.message);
 
