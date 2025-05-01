@@ -2,7 +2,7 @@ name: Send Shift Reminders
 
 on:
   schedule:
-    - cron: '*/10 * * * *' # cada 10 minutos para test
+    - cron: '0 20 * * *' # cada 10 minutos para test
   workflow_dispatch: # permite lanzarlo a mano
 
 jobs:
