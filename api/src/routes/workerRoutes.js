@@ -14,7 +14,8 @@ const {
     updateWorkerHospital,
     updateWorkerSpeciality,
     handleGetWorkerStats,
-    completeOnboarding
+    completeOnboarding,
+    getWorkerStatusOverview
 } = require('../controllers/workerController');
 
 const protectRoute = require('../middlewares/authMiddleware');
@@ -28,6 +29,7 @@ router.put('/me', protectRoute, updateWorkerInfo);
 router.put('/me/hospital', protectRoute, updateWorkerHospital);
 router.put('/me/speciality', protectRoute, updateWorkerSpeciality);
 
+router.get('/post-login-check', protectRoute, getWorkerStatusOverview);
 
 router.get('/', getAllWorkers);
 router.get('/:id', getWorkerById);

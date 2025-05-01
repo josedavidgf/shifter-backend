@@ -401,6 +401,63 @@ const completeOnboarding = async (req, res) => {
   }
 };
 
+const getWorkerStatusOverview = async (req, res) => {
+  const userId = req.user?.sub;
+  if (!userId) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+
+  try {
+    // Buscar worker por user_id
+    const { data: worker, error: workerError } = await supabase
+      .from('workers')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    // Si no hay worker, devolvemos exists: false
+    if (!worker) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          exists: false
+        }
+      });
+    }
+
+    const workerId = worker.worker_id;
+
+    // Chequear hospital
+    const { data: hospitals } = await supabase
+      .from('workers_hospitals')
+      .select('id')
+      .eq('worker_id', workerId);
+
+    // Chequear especialidad
+    const { data: specialities } = await supabase
+      .from('workers_specialities')
+      .select('id')
+      .eq('worker_id', workerId);
+
+    // Response con status completo
+    return res.status(200).json({
+      success: true,
+      data: {
+        exists: true,
+        onboarding_completed: !!worker.onboarding_completed,
+        hasWorkerType: !!worker.worker_type_id,
+        hasHospital: hospitals?.length > 0,
+        hasSpeciality: specialities?.length > 0,
+        hasName: !!worker.name && !!worker.surname,
+        hasPhone: !!worker.mobile_phone && !!worker.mobile_country_code
+      }
+    });
+
+  } catch (err) {
+    console.error('❌ Error en post-login-check:', err.message);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
 
 
 
@@ -419,5 +476,6 @@ module.exports = {
   updateWorkerHospital,
   updateWorkerSpeciality,
   handleGetWorkerStats,
-  completeOnboarding
+  completeOnboarding,
+  getWorkerStatusOverview
 };
