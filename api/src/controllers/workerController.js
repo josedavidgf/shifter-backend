@@ -413,7 +413,9 @@ const completeOnboarding = async (req, res) => {
 const initializeWorker = async (req, res) => {
   try {
     const user = req.user;
+    console.log('user',user);
     const email = user?.email;
+    console.log('email',email);
 
     if (!user || !user.id) {
       return res.status(401).json({ success: false, message: 'No autorizado' });
