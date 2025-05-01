@@ -42,6 +42,11 @@ const createWorker = async (req, res) => {
       console.error('❌ Usuario no autenticado');
       return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
     }
+
+    if (!data || data.length === 0) {
+      return res.status(404).json({ success: false, message: 'No existe worker previo para este usuario.' });
+    }
+    
     //console.log('👤 Usuario autenticado:', req.user);
     //console.log('👤 Datos del trabajador:', req.body);
     const { workerTypeId } = req.body;
@@ -57,30 +62,40 @@ const createWorker = async (req, res) => {
     //console.log('🔐 Usuario autenticado:', req.user);
 
     // Preparación de datos
-    const newWorker = {
+    /* const newWorker = {
       user_id: req.user.sub,
       email: req.user.email,
       state: 'active',
       worker_type_id: workerTypeId,
       onboarding_completed: false
     };
-
+ */
     //console.log('🧪 Datos del trabajador:', newWorker);
 
     //console.log('📤 Insertando en Supabase:', newWorker);
 
-    const { data, error } = await supabase
+    /* const { data, error } = await supabase
       .from('workers')
       .insert(newWorker)
       .select();
+ */
+
+      const updateData = {
+        worker_type_id: workerTypeId,
+        state: 'active',
+      };
+      const { data, error } = await supabase
+      .from('workers')
+      .update(updateData)
+      .eq('user_id', req.user.sub)
+      .select();
 
     if (error) {
-      console.error('❌ Error al insertar en Supabase:', error);
       return res.status(500).json({ success: false, message: error.message });
     }
 
     //console.log('✅ Trabajador creado:', data);
-    res.status(201).json({ success: true, worker: data[0] });
+    res.status(200).json({ success: true, worker: data[0] });
 
   } catch (err) {
     console.error('❌ Error inesperado en createWorker:', err.message);
