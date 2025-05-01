@@ -417,7 +417,7 @@ const initializeWorker = async (req, res) => {
     const email = user?.email;
     console.log('email',email);
 
-    if (!user || !user.id) {
+    if (!user || !user.sub) {
       return res.status(401).json({ success: false, message: 'No autorizado' });
     }
 
@@ -446,6 +446,7 @@ const initializeWorker = async (req, res) => {
         state: 'pending',
         onboarding_completed: false,
       });
+    console.log('res:',res);
 
     if (insertError) {
       return res.status(500).json({ success: false, message: insertError.message });
