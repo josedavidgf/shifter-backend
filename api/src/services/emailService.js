@@ -1,6 +1,6 @@
 // src/services/emailService.js
 const nodemailer = require('nodemailer');
-const { shouldSendSwapEmail , shouldSendReminderEmail} = require('./userPreferencesService'); // Ajusta el path si es necesario
+const { shouldSendSwapEmail, shouldSendReminderEmail } = require('./userPreferencesService'); // Ajusta el path si es necesario
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,       // ej: smtp.zoho.eu
@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-async function sendSwapProposalEmail(userId,toEmail, shift, offered) {
+async function sendSwapProposalEmail(userId, toEmail, shift, offered) {
   //('📤 Enviando email de propuesta de intercambio a:', userId);
   const allow = await shouldSendSwapEmail(userId);
   if (!allow) {
@@ -36,7 +36,7 @@ async function sendSwapProposalEmail(userId,toEmail, shift, offered) {
   await transporter.sendMail(mailOptions);
 }
 
-async function sendSwapAcceptedEmail(userId,toEmail, originalShift, acceptedShift) {
+async function sendSwapAcceptedEmail(userId, toEmail, originalShift, acceptedShift) {
 
   const allow = await shouldSendSwapEmail(userId);
   if (!allow) {
@@ -63,7 +63,7 @@ async function sendSwapAcceptedEmail(userId,toEmail, originalShift, acceptedShif
 
   await transporter.sendMail(mailOptions);
 }
-async function sendSwapRejectedEmail(userId,toEmail, originalShift, proposedShift) {
+async function sendSwapRejectedEmail(userId, toEmail, originalShift, proposedShift) {
 
   const allow = await shouldSendSwapEmail(userId);
   if (!allow) {
@@ -115,10 +115,53 @@ async function sendReminderEmail(toEmail, shift, user) {
   await transporter.sendMail(mailOptions);
 }
 
+async function sendSupportAndConfirmationEmail(worker, title, description) {
+  console.log('Data worker:', worker);
+  console.log('Data worker:', worker.name);
+  console.log('Data title:', title);
+  console.log('Data description:', description);
+
+  const supportMail = {
+    from: `"Tanda" <${process.env.SMTP_USER}>`,
+    to: 'josedavid@apptanda.com',
+    subject: `🛠️ Incidencia: ${title}`,
+    html: `
+<p>Nuevo mensaje de contacto:</p>
+
+<p><strong>Fecha de envío:</strong> ${new Date().toLocaleString('es-ES')}</p>
+<p><strong>Nombre:</strong> ${worker.name} ${worker.surname}</p>
+<p><strong>Email:</strong> ${worker.email}</p>
+
+<p><strong>Mensaje:</strong></p>
+<hr />
+<p>${description}</p>
+  `.trim()
+  };
+
+  const confirmationMail = {
+    from: `"Tanda" <${process.env.SMTP_USER}>`,
+    to: worker.email,
+    subject: '✅ Hemos recibido tu mensaje',
+    text: `
+Hola ${worker.name},
+
+Hemos recibido tu mensaje con el asunto: "${title}".
+
+Nuestro equipo lo está revisando y te responderemos lo antes posible.  
+Gracias por confiar en Tanda 🙌
+
+— El equipo de Tanda
+    `.trim()
+  };
+
+  await transporter.sendMail(supportMail);
+  await transporter.sendMail(confirmationMail);
+}
 
 module.exports = {
   sendSwapProposalEmail,
   sendSwapAcceptedEmail,
   sendSwapRejectedEmail,
-  sendReminderEmail
+  sendReminderEmail,
+  sendSupportAndConfirmationEmail
 };

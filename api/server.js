@@ -16,6 +16,7 @@ const userPreferencesRoutes = require('./src/routes/userPreferencesRoutes');
 const accessCodeRoutes = require('./src/routes/accessCodeRoutes');
 const swapPreferencesRoutes = require('./src/routes/swapPreferencesRoutes');
 const gptShiftsRoutes = require('./src/routes/gptshifts'); // 🆕 Añadido
+const supportRoutes = require('./src/routes/supportRoutes');
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
 
@@ -47,6 +48,8 @@ app.use('/api/preferences', userPreferencesRoutes);
 app.use('/api/access-codes', accessCodeRoutes);
 app.use('/api/swap-preferences', swapPreferencesRoutes);
 app.use('/api/gpt-shifts', gptShiftsRoutes); // 🧠 GPT endpoint
+app.use('/api/support', supportRoutes);
+
 
 // Iniciar servidor
 const PORT = process.env.PORT || 4000;
