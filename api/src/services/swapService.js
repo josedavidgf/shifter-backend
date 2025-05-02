@@ -69,12 +69,17 @@ async function getSwapsAcceptedForMyShifts(workerId) {
          worker: worker_id (
         worker_id,
         name,
-        surname)
+        surname,
+        mobile_country_code,
+        mobile_phone
+        )
       ),
       requester:requester_id (
         worker_id,
         name,
-        surname
+        surname,
+        mobile_country_code,
+        mobile_phone
       )
     `)
     .eq('status', 'accepted')
@@ -96,7 +101,9 @@ async function getSwapsAcceptedForMyShifts(workerId) {
         worker: worker_id (
         worker_id,
         name,
-        surname
+        surname,
+        mobile_country_code,
+        mobile_phone
       )
     )
     `)
