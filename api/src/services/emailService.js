@@ -36,7 +36,7 @@ async function sendSwapProposalEmail(userId, toEmail, shift, offered) {
   await transporter.sendMail(mailOptions);
 }
 
-async function sendSwapAcceptedEmail(userId, toEmail, originalShift, acceptedShift) {
+async function sendSwapAcceptedEmail(userId, toEmail, originalShift, proposedShift) {
 
   const allow = await shouldSendSwapEmail(userId);
   if (!allow) {
@@ -52,10 +52,10 @@ async function sendSwapAcceptedEmail(userId, toEmail, originalShift, acceptedShi
         <p>🎉 Tu propuesta de intercambio ha sido <strong>aceptada</strong> por ${originalShift.owner_name} ${originalShift.owner_surname} ${originalShift.owner_email}</p>
   
         <p><strong>Turno original (que querías cambiar):</strong><br>
-        ${originalShift.date} — ${originalShift.shift_type} (${originalShift.shift_label})</p>
+        ${originalShift.date} — ${originalShift.shift_type})</p>
   
         <p><strong>Turno que ofreciste:</strong><br>
-        ${acceptedShift.offered_date} — ${acceptedShift.offered_type} (${acceptedShift.offered_label})</p>
+        ${proposedShift.offered_date} — ${proposedShift.offered_type})</p>
   
         <p>Accede a tu cuenta para ver los detalles actualizados.</p>
       `
@@ -63,6 +63,35 @@ async function sendSwapAcceptedEmail(userId, toEmail, originalShift, acceptedShi
 
   await transporter.sendMail(mailOptions);
 }
+
+async function sendSwapAcceptedEmailOwner(userId, toEmail, originalShift, proposedShift) {
+
+  const allow = await shouldSendSwapEmail(userId);
+  if (!allow) {
+    console.log('📭 Usuario ha desactivado los emails. No se enviará.');
+    return;
+  }
+
+  const mailOptions = {
+    from: `"Tanda" <${process.env.SMTP_USER}>`,
+    to: toEmail,
+    subject: '✅ Tu turno ha sido intercambiado automáticamente',
+    html: `
+        <p>🎉 El turno que publicaste ha sido intercambiado automáticamente por uno de los turnos que tenías disponible</p>
+  
+        <p><strong>Turno que tenías y publicaste:</strong><br>
+        ${originalShift.date} — ${originalShift.shift_type})</p>
+  
+        <p><strong>Turno te han cambiado y que vas a hacer :</strong><br>
+        ${proposedShift.offered_date} — ${proposedShift.offered_type})</p>
+  
+        <p>Accede a tu cuenta para ver los detalles actualizados.</p>
+      `
+  };
+
+  await transporter.sendMail(mailOptions);
+}
+
 async function sendSwapRejectedEmail(userId, toEmail, originalShift, proposedShift) {
 
   const allow = await shouldSendSwapEmail(userId);
@@ -79,10 +108,10 @@ async function sendSwapRejectedEmail(userId, toEmail, originalShift, proposedShi
         <p>Lamentablemente, tu propuesta de intercambio ha sido <strong>rechazada</strong> por ${originalShift.owner_name} ${originalShift.owner_surname} ${originalShift.owner_email}.</p>
   
         <p><strong>Turno que solicitaste cambiar:</strong><br>
-        ${originalShift.date} — ${originalShift.shift_type} (${originalShift.shift_label})</p>
+        ${originalShift.date} — ${originalShift.shift_type}</p>
   
         <p><strong>Turno que ofreciste:</strong><br>
-        ${proposedShift.offered_date} — ${proposedShift.offered_type} (${proposedShift.offered_label})</p>
+        ${proposedShift.offered_date} — ${proposedShift.offered_type}</p>
   
         <p>Puedes proponer otro cambio desde la app si lo deseas.</p>
       `
@@ -116,10 +145,7 @@ async function sendReminderEmail(toEmail, shift, user) {
 }
 
 async function sendSupportAndConfirmationEmail(worker, title, description) {
-  console.log('Data worker:', worker);
-  console.log('Data worker:', worker.name);
-  console.log('Data title:', title);
-  console.log('Data description:', description);
+
 
   const supportMail = {
     from: `"Tanda" <${process.env.SMTP_USER}>`,
@@ -161,6 +187,7 @@ Gracias por confiar en Tanda 🙌
 module.exports = {
   sendSwapProposalEmail,
   sendSwapAcceptedEmail,
+  sendSwapAcceptedEmailOwner,
   sendSwapRejectedEmail,
   sendReminderEmail,
   sendSupportAndConfirmationEmail

@@ -1,5 +1,5 @@
 const supabase = require('../config/supabase');
-const { sendSwapAcceptedEmail, sendSwapRejectedEmail } = require('./emailService');
+const { sendSwapAcceptedEmail, sendSwapAcceptedEmailOwner, sendSwapRejectedEmail } = require('./emailService');
 const { getShiftWithOwnerEmail } = require('./shiftService');
 const { getWorkerById } = require('./workerService');
 const { getMySwapPreferences, deleteSwapPreference } = require('./swapPreferencesService');
@@ -201,8 +201,6 @@ async function respondToSwap(swapId, status, ownerId) {
     await sendSwapAcceptedEmail(
       requester.user_id,
       requester.email,
-      requester.name,
-      requester.surname,
       shift,
       updatedSwap
     );
@@ -367,17 +365,47 @@ async function createSwapWithMatching(data) {
 
     // 6. Eliminar preferencia cumplida
     await deleteSwapPreference(match.preference_id);
-
     // 7. Enviar email de aceptación automática
-    const requester = await getWorkerById(requester_id);
-    const shiftWithEmail = await getShiftWithOwnerEmail(shift_id);
+
+    console.log(updatedSwap.shift_id);
+    const shiftId = updatedSwap.shift_id;
+    const { data: shiftWorkerId, error: shiftWorkerIdError } = await supabase
+      .from('shifts')
+      .select('worker_id')
+      .eq('shift_id', shiftId)
+      .single();
+
+    console.log('shiftWorkerId',shiftWorkerId);
+
+    if (shiftWorkerIdError) throw new Error(shiftWorkerIdError.message);
+
+
+    const [shift, requester, owner] = await Promise.all([
+      getShiftWithOwnerEmail(shiftId),
+      getWorkerById(updatedSwap.requester_id),
+      getWorkerById(shiftWorkerId.worker_id)
+
+    ]);
+
+    console.log('owner',owner);
 
     await sendSwapAcceptedEmail(
       requester.user_id,
       requester.email,
-      requester.name,
-      requester.surname,
-      shiftWithEmail,
+      shift,
+      updatedSwap
+    );
+
+    console.log('ownerid', owner.user_id);
+    console.log('owner.email', owner.email);
+    console.log('shift', shift);
+    console.log('updatedSwap', updatedSwap);
+
+
+    await sendSwapAcceptedEmailOwner(
+      owner.user_id,
+      owner.email,
+      shift,
       updatedSwap
     );
 
