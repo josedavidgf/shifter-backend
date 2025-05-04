@@ -171,10 +171,13 @@ async function respondToSwap(swapId, status, ownerId) {
   if (status === 'accepted') {
     const shiftId = updatedSwap.shift_id;
 
+    console.log('⚠️');
+
     const { error: shiftError } = await supabase
       .from('shifts')
       .update({ state: 'swapped' })
       .eq('shift_id', shiftId);
+    console.log('🧪');
 
     if (shiftError) throw new Error('No se pudo actualizar el estado del turno');
 
@@ -183,11 +186,65 @@ async function respondToSwap(swapId, status, ownerId) {
       .select('shift_id, date, shift_type, worker_id')
       .eq('shift_id', shiftId)
       .single();
+    console.log('🧪🧪');
 
     if (shiftFetchError) throw new Error('No se pudo obtener el turno para actualizar calendario');
 
     // Enriquecemos el swap
     updatedSwap.shift = fullShift;
+    console.log('🧪🧪🧪');
+
+    console.log('🧪 Cancelando swaps con:');
+    console.log('requester_id:', updatedSwap.requester_id);
+    console.log('offered_date:', updatedSwap.offered_date);
+    console.log('offered_type:', updatedSwap.offered_type);
+    console.log('swap_id to exclude:', updatedSwap.swap_id);
+
+
+
+
+    // 🛡️ Cancelar otros swaps que ofrecen el mismo turno del requester
+    await supabase
+      .from('swaps')
+      .update({ status: 'cancelled' })
+      .eq('requester_id', updatedSwap.requester_id)
+      .eq('offered_date', updatedSwap.offered_date)
+      .eq('offered_type', updatedSwap.offered_type)
+      .neq('swap_id', updatedSwap.swap_id)
+      .eq('status', 'proposed');
+
+    // 🟥 Rechazar otras propuestas para este mismo turno recibido
+    const { data: swapsToReject, error: rejectQueryError } = await supabase
+      .from('swaps')
+      .select('*')
+      .eq('shift_id', updatedSwap.shift_id)
+      .neq('swap_id', updatedSwap.swap_id)
+      .eq('status', 'proposed');
+
+    if (rejectQueryError) throw new Error('No se pudieron consultar swaps a rechazar');
+
+    await supabase
+      .from('swaps')
+      .update({ status: 'rejected' })
+      .eq('shift_id', updatedSwap.shift_id)
+      .neq('swap_id', updatedSwap.swap_id)
+      .eq('status', 'proposed');
+
+    // Enviar correo a cada uno
+    for (const swap of swapsToReject) {
+      const [shift, requester] = await Promise.all([
+        getShiftWithOwnerEmail(swap.shift_id),
+        getWorkerById(swap.requester_id)
+      ]);
+
+      await sendSwapRejectedEmail(
+        requester.user_id,
+        requester.email,
+        shift,
+        swap
+      );
+    }
+
 
     // 🧠 Aplicamos lógica de calendarización
     console.log('updatedSwap:', updatedSwap)
@@ -375,7 +432,7 @@ async function createSwapWithMatching(data) {
       .eq('shift_id', shiftId)
       .single();
 
-    console.log('shiftWorkerId',shiftWorkerId);
+    //console.log('shiftWorkerId', shiftWorkerId);
 
     if (shiftWorkerIdError) throw new Error(shiftWorkerIdError.message);
 
@@ -387,20 +444,12 @@ async function createSwapWithMatching(data) {
 
     ]);
 
-    console.log('owner',owner);
-
     await sendSwapAcceptedEmail(
       requester.user_id,
       requester.email,
       shift,
       updatedSwap
     );
-
-    console.log('ownerid', owner.user_id);
-    console.log('owner.email', owner.email);
-    console.log('shift', shift);
-    console.log('updatedSwap', updatedSwap);
-
 
     await sendSwapAcceptedEmailOwner(
       owner.user_id,
@@ -419,6 +468,49 @@ async function createSwapWithMatching(data) {
     if (shiftFetchError) throw new Error('No se pudo obtener el turno para aplicar el swap');
 
     updatedSwap.shift = fullShift;
+
+    // 🔒 Cancelar otros swaps que usan el mismo turno ofrecido por el requester
+    await supabase
+      .from('swaps')
+      .update({ status: 'cancelled' })
+      .eq('requester_id', updatedSwap.requester_id)
+      .eq('offered_date', updatedSwap.offered_date)
+      .eq('offered_type', updatedSwap.offered_type)
+      .neq('swap_id', updatedSwap.swap_id)
+      .eq('status', 'proposed');
+
+    // 🟥 Rechazar otras propuestas para este turno recibido
+    const { data: swapsToReject, error: rejectQueryError } = await supabase
+      .from('swaps')
+      .select('*')
+      .eq('shift_id', updatedSwap.shift_id)
+      .neq('swap_id', updatedSwap.swap_id)
+      .eq('status', 'proposed');
+
+    if (rejectQueryError) throw new Error('No se pudieron consultar swaps a rechazar');
+
+    await supabase
+      .from('swaps')
+      .update({ status: 'rejected' })
+      .eq('shift_id', updatedSwap.shift_id)
+      .neq('swap_id', updatedSwap.swap_id)
+      .eq('status', 'proposed');
+
+    // Enviar correo a cada uno
+    for (const swap of swapsToReject) {
+      const [shift, requester] = await Promise.all([
+        getShiftWithOwnerEmail(swap.shift_id),
+        getWorkerById(swap.requester_id)
+      ]);
+
+      await sendSwapRejectedEmail(
+        requester.user_id,
+        requester.email,
+        shift,
+        swap
+      );
+    }
+
 
     // ✅ Aplicar el swap a monthly_schedules
     await applySwapToMonthlySchedule(updatedSwap);
