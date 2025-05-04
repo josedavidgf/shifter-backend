@@ -38,8 +38,23 @@ async function createWorker(workerData) {
       throw new Error(error.message);
     }
 
-    //console.log('✅ Worker insertado correctamente:', data);
-    return data;
+    const createdWorker = data[0];
+
+    // 👉 Insertar preferencias por defecto
+    const { error: prefError } = await supabase
+      .from('user_preferences')
+      .insert({
+        user_id: createdWorker.user_id,
+        receive_emails_swap: true,
+        receive_emails_reminders: true
+      });
+
+    if (prefError) {
+      console.error('⚠️ No se pudieron insertar las preferencias por defecto:', prefError.message);
+      // No lanzamos throw para no bloquear la creación del worker
+    }
+
+    return [createdWorker];
 
   } catch (err) {
     console.error('❌ createWorker error:', err.message);
