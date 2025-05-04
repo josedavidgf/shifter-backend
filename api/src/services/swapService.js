@@ -149,12 +149,7 @@ async function respondToSwap(swapId, status, ownerId) {
   if (error) throw new Error(error.message);
 
   if (status === 'rejected') {
-    const shiftId = updatedSwap.shift_id;
-    const { error: shiftError } = await supabase
-      .from('shifts')
-      .update({ state: 'rejected' })
-      .eq('shift_id', shiftId);
-
+    
     const [shift, requester] = await Promise.all([
       getShiftWithOwnerEmail(updatedSwap.shift_id),
       getWorkerById(updatedSwap.requester_id)
