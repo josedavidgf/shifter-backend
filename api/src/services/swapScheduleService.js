@@ -64,5 +64,7 @@ async function applySwapToMonthlySchedule(swap) {
       swap_id: swap.swap_id,
     }, { onConflict: ['worker_id', 'date'] });
 
-  console.log('✅ monthly_schedules actualizado tras swap.');
-module.exports = { applySwapToMonthlySchedule };
+    console.log('✅ monthly_schedules actualizado tras swap.');
+  } // ← ESTA llave es la que falta
+  
+  module.exports = { applySwapToMonthlySchedule }
