@@ -1,18 +1,68 @@
-import { format, parseISO } from 'date-fns';
+// swapScheduleService.js
+const supabase = require('../config/supabase');
 
-export default function DayDetailReceived({ entry }) {
-  const parsedDate = parseISO(entry.date);
-  const displayDay = format(parsedDate, 'EEEE', { locale: undefined }); // Adjust locale as needed
+/**
+ * Actualiza la tabla monthly_schedules tras aceptar un swap.
+ * Asigna turno recibido al requester y marca como traspasado el turno original del owner.
+ * @param {object} swap - Objeto swap completo (debería incluir shift, requester_id, offered_date, offered_type)
+ */
+async function applySwapToMonthlySchedule(swap) {
+  console.log('swap', swap);
+  const { shift, requester_id, offered_date, offered_type } = swap;
 
-  return (
-    <div>
-      <h3 className="font-bold mb-2">
-        {`${displayDay}, ${format(parsedDate, 'dd/MM')} - Turno recibido`}
-      </h3>
-      <p className="mb-4">
-        El {displayDay.toLowerCase()}, {format(parsedDate, 'dd/MM')} tienes turno de {entry.shift_type?.toLowerCase()}. Te lo ha cambiado {entry.related_worker?.name} {entry.related_worker?.surname}.
-      </p>
-      {/* Other content */}
-    </div>
-  );
-}
+  if (!shift || !shift.date || !shift.shift_type || !shift.worker_id) {
+    throw new Error('El objeto swap.shift está incompleto');
+  }
+
+  const ownerId = shift.worker_id;
+  const ownerDate = shift.date;
+  const ownerType = shift.shift_type;
+
+  // Paso 1: marcar turno original del owner como traspasado
+  await supabase
+    .from('monthly_schedules')
+    .update({
+      source: 'swapped_out',
+      swap_id: swap.swap_id,
+      related_worker_id: requester_id,
+    })
+    .eq('worker_id', ownerId)
+    .eq('date', ownerDate);
+
+  // Paso 2: añadir turno recibido por owner
+  await supabase
+    .from('monthly_schedules')
+    .upsert({
+      worker_id: ownerId,
+      date: offered_date,
+      shift_type: offered_type,
+      source: 'received_swap',
+      related_worker_id: requester_id,
+      swap_id: swap.swap_id,
+    }, { onConflict: ['worker_id', 'date'] });
+
+  // Paso 3: marcar turno original del requester como traspasado
+  await supabase
+    .from('monthly_schedules')
+    .update({
+      source: 'swapped_out',
+      swap_id: swap.swap_id,
+      related_worker_id: ownerId,
+    })
+    .eq('worker_id', requester_id)
+    .eq('date', offered_date);
+
+  // Paso 4: añadir turno recibido por requester
+  await supabase
+    .from('monthly_schedules')
+    .upsert({
+      worker_id: requester_id,
+      date: ownerDate,
+      shift_type: ownerType,
+      source: 'received_swap',
+      related_worker_id: ownerId,
+      swap_id: swap.swap_id,
+    }, { onConflict: ['worker_id', 'date'] });
+
+  console.log('✅ monthly_schedules actualizado tras swap.');
+module.exports = { applySwapToMonthlySchedule };
