@@ -1,6 +1,8 @@
 // src/services/emailService.js
 const nodemailer = require('nodemailer');
 const { shouldSendSwapEmail, shouldSendReminderEmail } = require('./userPreferencesService'); // Ajusta el path si es necesario
+const { translateShiftType } = require('../utils/translateService'); // ✅ Import antes de usar
+
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,       // ej: smtp.zoho.eu
@@ -26,8 +28,8 @@ async function sendSwapProposalEmail(userId, toEmail, shift, offered) {
     subject: '📩 Nuevo intercambio de turno propuesto',
     html: `
         <p>Has recibido una propuesta de intercambio de turno de <strong>${offered.requester_name} ${offered.requester_surname} | ${offered.requester_email}</strong>.</p>
-        <p><strong>Tu turno:</strong> ${shift.date} — ${shift.shift_type} (${shift.shift_label})</p>
-        <p><strong>Turno ofrecido:</strong> ${offered.offered_date} — ${offered.offered_type} (${offered.offered_label})</p>
+        <p><strong>Tu turno:</strong> ${shift.date} — ${translateShiftType(shift.shift_type)}</p>
+        <p><strong>Turno ofrecido:</strong> ${offered.offered_date} — ${translateShiftType(offered.offered_type)}</p>
         <p>Comentarios: ${offered.swap_comments}</p> 
         <p>Accede a la app para aceptar o rechazar esta propuesta.</p>
       `
@@ -52,10 +54,10 @@ async function sendSwapAcceptedEmail(userId, toEmail, originalShift, proposedShi
         <p>🎉 Tu propuesta de intercambio ha sido <strong>aceptada</strong> por ${originalShift.owner_name} ${originalShift.owner_surname} ${originalShift.owner_email}</p>
   
         <p><strong>Turno original (que querías cambiar):</strong><br>
-        ${originalShift.date} — ${originalShift.shift_type})</p>
+        ${originalShift.date} — ${translateShiftType(originalShift.shift_type)})</p>
   
         <p><strong>Turno que ofreciste:</strong><br>
-        ${proposedShift.offered_date} — ${proposedShift.offered_type})</p>
+        ${proposedShift.offered_date} — ${translateShiftType(proposedShift.offered_type)})</p>
   
         <p>Accede a tu cuenta para ver los detalles actualizados.</p>
       `
@@ -80,10 +82,10 @@ async function sendSwapAcceptedEmailOwner(userId, toEmail, originalShift, propos
         <p>🎉 El turno que publicaste ha sido intercambiado automáticamente por uno de los turnos que tenías disponible</p>
   
         <p><strong>Turno que tenías y publicaste:</strong><br>
-        ${originalShift.date} — ${originalShift.shift_type})</p>
+        ${originalShift.date} — ${translateShiftType(originalShift.shift_type)})</p>
   
         <p><strong>Turno te han cambiado y que vas a hacer :</strong><br>
-        ${proposedShift.offered_date} — ${proposedShift.offered_type})</p>
+        ${proposedShift.offered_date} — ${translateShiftType(proposedShift.offered_type)})</p>
   
         <p>Accede a tu cuenta para ver los detalles actualizados.</p>
       `
@@ -108,10 +110,10 @@ async function sendSwapRejectedEmail(userId, toEmail, originalShift, proposedShi
         <p>Lamentablemente, tu propuesta de intercambio ha sido <strong>rechazada</strong> por ${originalShift.owner_name} ${originalShift.owner_surname} ${originalShift.owner_email}.</p>
   
         <p><strong>Turno que solicitaste cambiar:</strong><br>
-        ${originalShift.date} — ${originalShift.shift_type}</p>
+        ${originalShift.date} — ${translateShiftType(originalShift.shift_type)}</p>
   
         <p><strong>Turno que ofreciste:</strong><br>
-        ${proposedShift.offered_date} — ${proposedShift.offered_type}</p>
+        ${proposedShift.offered_date} — ${translateShiftType(proposedShift.offered_type)}</p>
   
         <p>Puedes proponer otro cambio desde la app si lo deseas.</p>
       `
@@ -129,13 +131,13 @@ async function sendReminderEmail(toEmail, shift, user) {
   const mailOptions = {
     from: `"Tanda" <${process.env.SMTP_USER}>`,
     to: toEmail,
-    subject: `📆 Recordatorio: tienes turno el ${shift.date} de ${shift.shift_type}`,
+    subject: `📆 Recordatorio: tienes turno el ${shift.date} de ${translateShiftType(shift.shift_type)}`,
     html: `
       <p>Hola ${user.name || ''},</p>
       <p>Este es un recordatorio de que <strong>mañana</strong> tienes un turno programado:</p>
       <ul>
         <li><strong>Fecha:</strong> ${shift.date}</li>
-        <li><strong>Turno:</strong> ${shift.shift_type}</li>
+        <li><strong>Turno:</strong> ${translateShiftType(shift.shift_type)}</li>
       </ul>
       <p>¡Gracias por tu compromiso!</p>
     `
