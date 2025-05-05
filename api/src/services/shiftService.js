@@ -1,6 +1,8 @@
 const { get } = require('express/lib/response');
 const supabase = require('../config/supabase');
 const { getWorkerByUserId } = require('./workerService');
+const { createUserEvent } = require('./userEventsService');
+
 
 async function createShift(shiftData) {
     try {
@@ -23,6 +25,15 @@ async function createShift(shiftData) {
         }
 
         console.log('✅ Turno insertado correctamente:', data);
+
+        // ✅ REGISTRO DE EVENTO shift_published
+        await createUserEvent(data.worker_id, 'shift_published', {
+            shift_id: data.shift_id,
+            date: data.date,
+            shift_type: data.shift_type,
+        });
+
+
         return data;
     }
     catch (err) {
