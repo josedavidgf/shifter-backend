@@ -4,6 +4,8 @@ const { getShiftWithOwnerEmail } = require('./shiftService');
 const { getWorkerById } = require('./workerService');
 const { getMySwapPreferences, deleteSwapPreference } = require('./swapPreferencesService');
 const { applySwapToMonthlySchedule } = require('./swapScheduleService');
+const { createUserEvent } = require('./userEventsService');
+
 
 
 // TODO: Verificar si esta función sigue siendo necesaria después del MVP.
@@ -161,6 +163,10 @@ async function respondToSwap(swapId, status, ownerId) {
       shift,
       updatedSwap
     );
+    await createUserEvent(requester.worker_id, 'swap_rejected', {
+      shift_date: shift.date,
+      shift_type: shift.shift_type,
+    });   
   }
 
   if (status === 'accepted') {
@@ -238,6 +244,10 @@ async function respondToSwap(swapId, status, ownerId) {
         shift,
         swap
       );
+      await createUserEvent(requester.worker_id, 'swap_rejected', {
+        shift_date: shift.date,
+        shift_type: shift.shift_type,
+      });   
     }
 
 
@@ -256,6 +266,12 @@ async function respondToSwap(swapId, status, ownerId) {
       shift,
       updatedSwap
     );
+    await createUserEvent(updatedSwap.requester_id, 'swap_accepted', {
+      shift_date: fullShift.date,
+      shift_type: fullShift.shift_type,
+      offered_date,
+      offered_type
+    });    
   }
 
   return updatedSwap;
@@ -445,6 +461,12 @@ async function createSwapWithMatching(data) {
       shift,
       updatedSwap
     );
+    await createUserEvent(updatedSwap.requester_id, 'swap_accepted_automatically_requester', {
+      shift_date: shift.date,
+      shift_type: shift.shift_type,
+      offered_date,
+      offered_type
+    });
 
     await sendSwapAcceptedEmailOwner(
       owner.user_id,
@@ -452,6 +474,12 @@ async function createSwapWithMatching(data) {
       shift,
       updatedSwap
     );
+    await createUserEvent(owner.worker_id, 'swap_accepted_automatically_owner', {
+      shift_date: shift.date,
+      shift_type: shift.shift_type,
+      offered_date,
+      offered_type,
+    });
 
     // Añadir el turno embebido (como en respondToSwap)
     const { data: fullShift, error: shiftFetchError } = await supabase
@@ -504,6 +532,10 @@ async function createSwapWithMatching(data) {
         shift,
         swap
       );
+      await createUserEvent(requester.worker_id, 'swap_rejected', {
+        shift_date: shift.date,
+        shift_type: shift.shift_type,
+      });      
     }
 
 

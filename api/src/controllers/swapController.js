@@ -1,4 +1,4 @@
-const { getSwapByIdService,createSwapWithMatching } = require('../services/swapService');
+const { getSwapByIdService, createSwapWithMatching } = require('../services/swapService');
 const { getShiftWithOwnerEmail } = require('../services/shiftService');
 const { getWorkerByUserId } = require('../services/workerService');
 const {
@@ -10,6 +10,9 @@ const {
     getSwapsAcceptedForMyShifts,
 } = require('../services/swapService');
 const { sendSwapProposalEmail } = require('../services/emailService');
+const { createUserEvent } = require('../services/userEventsService');
+const { translateShiftType } = require('../utils/translateService'); // ✅ Import antes de usar
+
 
 
 async function handleCreateSwap(req, res) {
@@ -50,6 +53,10 @@ async function handleCreateSwap(req, res) {
             const requester_email = worker.email;
             const requester_name = worker.name;
             const requester_surname = worker.surname;
+            const shift_date = shift.date;
+            const shift_type = shift.shift_type;
+            const shift_owner_name = shift.owner_name;
+            const shift_owner_surname = shift.owner_surname; 
 
             // Enviar correo al trabajador con la propuesta de swap
             await sendSwapProposalEmail(
@@ -66,6 +73,24 @@ async function handleCreateSwap(req, res) {
                     swap_comments,
                 }
             );
+            // Evento para el requester (quien propone)
+            await createUserEvent(worker.worker_id, 'swap_proposed', {
+                offered_date,
+                offered_type,
+                shift_date,
+                shift_type,
+                shift_owner_name,
+                shift_owner_surname
+            });
+            // Evento para el owner (quien recibe la propuesta)
+            await createUserEvent(shift.owner_worker_id, 'swap_received', {
+                shift_date,
+                shift_type,
+                offered_date,
+                offered_type,
+                requester_name,
+                requester_surname
+            });
         }
 
         res.status(201).json({ success: true, data: swap });
@@ -166,13 +191,13 @@ async function handleGetSwapsById(req, res) {
 async function handleGetSwapsByShiftId(req, res) {
     const shiftId = req.params.shiftId;
     try {
-      const swaps = await getSwapsByShiftIdService(shiftId);
-      return res.json({ data: swaps });
+        const swaps = await getSwapsByShiftIdService(shiftId);
+        return res.json({ data: swaps });
     } catch (err) {
-      console.error('❌ Error al obtener swaps por turno:', err.message);
-      return res.status(500).json({ error: 'No se pudieron cargar los intercambios para este turno' });
+        console.error('❌ Error al obtener swaps por turno:', err.message);
+        return res.status(500).json({ error: 'No se pudieron cargar los intercambios para este turno' });
     }
-  }
+}
 
 module.exports = {
     handleCreateSwap,

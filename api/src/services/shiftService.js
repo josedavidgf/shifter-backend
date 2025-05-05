@@ -259,6 +259,7 @@ async function getShiftWithOwnerEmail(shiftId) {
         date: data.date,
         shift_type: data.shift_type,
         shift_label: data.shift_label,
+        owner_worker_id: data.worker_id,
         owner_email: data.workers.email,
         owner_name: data.workers.name,
         owner_surname: data.workers.surname,
