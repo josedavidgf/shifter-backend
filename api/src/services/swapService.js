@@ -269,8 +269,8 @@ async function respondToSwap(swapId, status, ownerId) {
     await createUserEvent(updatedSwap.requester_id, 'swap_accepted', {
       shift_date: fullShift.date,
       shift_type: fullShift.shift_type,
-      offered_date,
-      offered_type
+      offered_date: updatedSwap.offered_date,
+      offered_type: updatedSwap.offered_type
     });    
   }
 
@@ -464,8 +464,8 @@ async function createSwapWithMatching(data) {
     await createUserEvent(updatedSwap.requester_id, 'swap_accepted_automatically_requester', {
       shift_date: shift.date,
       shift_type: shift.shift_type,
-      offered_date,
-      offered_type
+      offered_date: updatedSwap.offered_date,
+      offered_type: updatedSwap.offered_type
     });
 
     await sendSwapAcceptedEmailOwner(
@@ -477,8 +477,8 @@ async function createSwapWithMatching(data) {
     await createUserEvent(owner.worker_id, 'swap_accepted_automatically_owner', {
       shift_date: shift.date,
       shift_type: shift.shift_type,
-      offered_date,
-      offered_type,
+      offered_date: updatedSwap.offered_date,
+      offered_type: updatedSwap.offered_type
     });
 
     // Añadir el turno embebido (como en respondToSwap)
