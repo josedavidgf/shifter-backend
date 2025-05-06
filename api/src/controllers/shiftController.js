@@ -168,15 +168,12 @@ async function handleGetHospitalShifts(req, res) {
         //console.log('hospitalId:', worker.workers_hospitals?.[0]?.hospital_id);
         //console.log('workerId:', worker.worker_id);
         //console.log('workerType:', worker.worker_type_id)
-        const limit = parseInt(req.query.limit) || 10;
-        const offset = parseInt(req.query.offset) || 0;
+
 
         const shifts = await getHospitalShifts(
             worker.workers_hospitals?.[0]?.hospital_id,
             worker.worker_id,
-            worker.worker_type_id,
-            limit,
-            offset
+            worker.worker_type_id
         );
         res.json({ success: true, data: shifts });
     } catch (err) {

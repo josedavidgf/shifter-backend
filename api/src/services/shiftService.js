@@ -127,7 +127,6 @@ async function getHospitalShifts(hospitalId, excludeWorkerId, workerTypeId, limi
         .eq('state', 'published')
         //.neq('worker_id', excludeWorkerId) // aquí estamos excluyendo tus turnos
         .order('date', { ascending: true }) // más recientes primero
-        .range(offset, offset + limit - 1); // paginación
 
     if (error) throw new Error(error.message); // <- mover arriba
 
