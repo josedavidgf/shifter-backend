@@ -69,7 +69,7 @@ async function getWorkerByUserId(userId) {
       *,
       worker_types ( worker_type_name ),
       workers_hospitals ( hospital_id, hospitals ( name ) ),
-      workers_specialities ( speciality_id, specialities ( speciality_category, speciality_subcategory ) )
+      workers_specialities ( speciality_id, specialities ( speciality_category ) )
     `)
     .eq('user_id', userId)
     .single();

@@ -4,7 +4,7 @@ async function getSpecialitiesByHospital(hospitalId) {
   console.log('hospitalId service:', hospitalId);
   const { data, error } = await supabase
     .from('hospitals_specialities')
-    .select('speciality:speciality_id (speciality_category, speciality_subcategory, speciality_id)')
+    .select('speciality:speciality_id (speciality_category, speciality_id)')
     .eq('hospital_id', hospitalId);
 
 
@@ -16,7 +16,6 @@ async function getSpecialitiesByHospital(hospitalId) {
   const response = data.map(row => ({
     speciality_id: row.speciality.speciality_id,
     speciality_category: row.speciality.speciality_category,
-    speciality_subcategory: row.speciality.speciality_subcategory,
   }));
   console.log('response service:', response);
   return response;
