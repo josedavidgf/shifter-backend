@@ -33,27 +33,29 @@ async function getSwapsForMyShifts(workerId) {
   const { data: swaps, error } = await supabase
     .from('swaps')
     .select(`
-      *,
-      shift:shift_id (
-        shift_id,
-        date,
-        shift_type,
-        shift_label,
-        shift_comments,
-         worker: worker_id (
+    *,
+    requester:requester_id (
+      worker_id,
+      name,
+      surname,
+      mobile_country_code,
+      mobile_phone
+    ),
+    shift:shift_id (
+      shift_id,
+      date,
+      shift_type,
+      shift_label,
+      shift_comments,
+      worker:worker_id (
         worker_id,
         name,
         surname,
         mobile_country_code,
         mobile_phone
-        )
-      ),
-      requester:requester_id (
-        name,
-        surname,
-        email
       )
-    `)
+    )
+  `)
     .in('shift_id', shiftIds);
   if (error) throw new Error(error.message);
   return swaps;
@@ -75,17 +77,16 @@ async function getSwapsAcceptedForMyShifts(workerId) {
       *,
       shift:shift_id (
         shift_id,
-        worker_id,
         date,
         shift_type,
         shift_label,
         shift_comments,
-         worker: worker_id (
-        worker_id,
-        name,
-        surname,
-        mobile_country_code,
-        mobile_phone
+        worker:worker_id (
+          worker_id,
+          name,
+          surname,
+          mobile_country_code,
+          mobile_phone
         )
       ),
       requester:requester_id (
@@ -107,17 +108,17 @@ async function getSwapsAcceptedForMyShifts(workerId) {
       *,
       shift:shift_id (
         shift_id,
-        worker_id,
         date,
         shift_type,
         shift_label,
         shift_comments,
-        worker: worker_id (
-        worker_id,
-        name,
-        surname,
-        mobile_country_code,
-        mobile_phone
+        worker:worker_id (
+          worker_id,
+          name,
+          surname,
+          mobile_country_code,
+          mobile_phone
+        )
       ),
       requester:requester_id (
         worker_id,
@@ -126,7 +127,6 @@ async function getSwapsAcceptedForMyShifts(workerId) {
         mobile_country_code,
         mobile_phone
       )
-    )
     `)
     .eq('status', 'accepted')
     .eq('requester_id', workerId);
@@ -301,9 +301,11 @@ async function getSwapsByRequesterId(workerId) {
         )
       ),
       requester:requester_id (
+        worker_id,
         name,
         surname,
-        email
+        mobile_country_code,
+        mobile_phone
       )
     `)
     .eq('requester_id', workerId)
@@ -323,17 +325,21 @@ async function getSwapByIdService(swapId, userId) {
         date,
         shift_type,
         shift_label,
-        worker_id,
+        shift_comments,
         worker:worker_id (
+          worker_id,
           name,
           surname,
-          email
+          mobile_country_code,
+          mobile_phone
         )
       ),
       requester:requester_id (
+        worker_id,
         name,
         surname,
-        email
+        mobile_country_code,
+        mobile_phone
       )
     `)
     .eq('swap_id', swapId)
@@ -353,31 +359,27 @@ async function getSwapsByShiftIdService(shiftId) {
   const { data, error } = await supabase
     .from('swaps')
     .select(`
-      swap_id,
-      status,
-      shift_id,
-      requester_id,
-      offered_date,
-      offered_type,
-      offered_label,
-      swap_comments,
+      *,
       shift:shift_id (
         shift_id,
         date,
         shift_type,
         shift_label,
         shift_comments,
-        worker_id,
         worker:worker_id (
+          worker_id,
           name,
           surname,
-          email
+          mobile_country_code,
+          mobile_phone
         )
       ),
       requester:requester_id (
+        worker_id,
         name,
         surname,
-        email
+        mobile_country_code,
+        mobile_phone
       )
     `)
     .eq('shift_id', shiftId)
