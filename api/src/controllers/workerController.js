@@ -46,7 +46,6 @@ const createWorker = async (req, res) => {
     //console.log('👤 Usuario autenticado:', req.user);
     //console.log('👤 Datos del trabajador:', req.body);
     const { workerTypeId } = req.body;
-    console.log(workerTypeId)
     // Validación básica
     if (!workerTypeId) {
       console.error('❌ Campos obligatorios faltantes:', { workerTypeId });
@@ -148,7 +147,7 @@ const createWorkerSpeciality = async (req, res) => {
 
 const getMyWorkerProfile = async (req, res) => {
   const userId = req.user?.sub;
-  console.log('🧪 userId recibido:', userId);
+  //console.log('🧪 userId recibido:', userId);
 
 
   if (!userId) {
@@ -446,7 +445,6 @@ const initializeWorker = async (req, res) => {
         state: 'pending',
         onboarding_completed: false,
       });
-    console.log('res:',res);
 
     if (insertError) {
       return res.status(500).json({ success: false, message: insertError.message });

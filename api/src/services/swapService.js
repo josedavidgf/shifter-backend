@@ -172,13 +172,10 @@ async function respondToSwap(swapId, status, ownerId) {
   if (status === 'accepted') {
     const shiftId = updatedSwap.shift_id;
 
-    console.log('⚠️');
-
     const { error: shiftError } = await supabase
       .from('shifts')
       .update({ state: 'swapped' })
       .eq('shift_id', shiftId);
-    console.log('🧪');
 
     if (shiftError) throw new Error('No se pudo actualizar el estado del turno');
 
@@ -187,22 +184,11 @@ async function respondToSwap(swapId, status, ownerId) {
       .select('shift_id, date, shift_type, worker_id')
       .eq('shift_id', shiftId)
       .single();
-    console.log('🧪🧪');
 
     if (shiftFetchError) throw new Error('No se pudo obtener el turno para actualizar calendario');
 
     // Enriquecemos el swap
     updatedSwap.shift = fullShift;
-    console.log('🧪🧪🧪');
-
-    console.log('🧪 Cancelando swaps con:');
-    console.log('requester_id:', updatedSwap.requester_id);
-    console.log('offered_date:', updatedSwap.offered_date);
-    console.log('offered_type:', updatedSwap.offered_type);
-    console.log('swap_id to exclude:', updatedSwap.swap_id);
-
-
-
 
     // 🛡️ Cancelar otros swaps que ofrecen el mismo turno del requester
     await supabase
@@ -252,7 +238,6 @@ async function respondToSwap(swapId, status, ownerId) {
 
 
     // 🧠 Aplicamos lógica de calendarización
-    console.log('updatedSwap:', updatedSwap)
     await applySwapToMonthlySchedule(updatedSwap);
 
     const [shift, requester] = await Promise.all([
@@ -435,7 +420,6 @@ async function createSwapWithMatching(data) {
     await deleteSwapPreference(match.preference_id);
     // 7. Enviar email de aceptación automática
 
-    console.log(updatedSwap.shift_id);
     const shiftId = updatedSwap.shift_id;
     const { data: shiftWorkerId, error: shiftWorkerIdError } = await supabase
       .from('shifts')

@@ -1,7 +1,6 @@
 const supabase = require('../config/supabase');
 
 async function getSpecialitiesByHospital(hospitalId) {
-  console.log('hospitalId service:', hospitalId);
   const { data, error } = await supabase
     .from('hospitals_specialities')
     .select('speciality:speciality_id (speciality_category, speciality_id)')
@@ -17,7 +16,6 @@ async function getSpecialitiesByHospital(hospitalId) {
     speciality_id: row.speciality.speciality_id,
     speciality_category: row.speciality.speciality_category,
   }));
-  console.log('response service:', response);
   return response;
   
 }

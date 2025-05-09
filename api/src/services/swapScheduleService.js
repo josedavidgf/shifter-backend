@@ -7,7 +7,6 @@ const supabase = require('../config/supabase');
  * @param {object} swap - Objeto swap completo (debería incluir shift, requester_id, offered_date, offered_type)
  */
 async function applySwapToMonthlySchedule(swap) {
-  console.log('swap', swap);
   const { shift, requester_id, offered_date, offered_type } = swap;
 
   if (!shift || !shift.date || !shift.shift_type || !shift.worker_id) {
@@ -64,7 +63,6 @@ async function applySwapToMonthlySchedule(swap) {
       swap_id: swap.swap_id,
     }, { onConflict: ['worker_id', 'date'] });
 
-    console.log('✅ monthly_schedules actualizado tras swap.');
   } // ← ESTA llave es la que falta
   
   module.exports = { applySwapToMonthlySchedule }

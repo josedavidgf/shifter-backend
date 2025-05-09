@@ -19,9 +19,6 @@ async function sendSupportEmail (req, res) {
       return res.status(404).json({ message: 'Worker not found' });
     
     }
-    console.log(worker);
-    console.log(title);
-    console.log(description);
 
     await sendSupportAndConfirmationEmail(
       {

@@ -40,6 +40,10 @@ async function createWorker(workerData) {
 
     const createdWorker = data[0];
 
+    console.log('aqui');
+    console.log('createdWorker',createdWorker);
+
+
     // 👉 Insertar preferencias por defecto
     const { error: prefError } = await supabase
       .from('user_preferences')
@@ -48,7 +52,7 @@ async function createWorker(workerData) {
         receive_emails_swap: true,
         receive_emails_reminders: true
       });
-
+      console.log('prefError',prefError);
     if (prefError) {
       console.error('⚠️ No se pudieron insertar las preferencias por defecto:', prefError.message);
       // No lanzamos throw para no bloquear la creación del worker
@@ -104,7 +108,6 @@ async function deleteWorker(workerId) {
 
 // Obtener el hospital asociado a un trabajador
 async function getWorkerHospital(workerId) {
-  console.log('worker:',workerId)
   const { data, error } = await supabase
     .from('workers_hospitals')
     .select('hospital_id')
@@ -112,7 +115,6 @@ async function getWorkerHospital(workerId) {
     .eq('state', 'active')
     .single();
   if (error) throw new Error(error.message);
-  console.log('🟡 Hospital asociado al trabajador:', data.hospital_id);
   return data;
 }
 
