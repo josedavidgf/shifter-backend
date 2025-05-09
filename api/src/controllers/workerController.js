@@ -90,6 +90,20 @@ const createWorker = async (req, res) => {
     //console.log('✅ Trabajador creado:', data);
     res.status(200).json({ success: true, worker: data[0] });
 
+    // 👉 Insertar preferencias por defecto
+    const { error: prefError } = await supabase
+      .from('user_preferences')
+      .insert({
+        user_id: req.user.sub,
+        receive_emails_swap: true,
+        receive_emails_reminders: true
+      });
+    console.log('prefError', prefError);
+    if (prefError) {
+      console.error('⚠️ No se pudieron insertar las preferencias por defecto:', prefError.message);
+      // No lanzamos throw para no bloquear la creación del worker
+    }
+
   } catch (err) {
     console.error('❌ Error inesperado en createWorker:', err.message);
     res.status(500).json({ success: false, message: err.message });
@@ -412,9 +426,9 @@ const completeOnboarding = async (req, res) => {
 const initializeWorker = async (req, res) => {
   try {
     const user = req.user;
-    console.log('user',user);
+    console.log('user', user);
     const email = user?.email;
-    console.log('email',email);
+    console.log('email', email);
 
     if (!user || !user.sub) {
       return res.status(401).json({ success: false, message: 'No autorizado' });

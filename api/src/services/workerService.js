@@ -18,7 +18,7 @@ async function getWorkerById(workerId) {
   return data;
 }
 
-// Crear un nuevo trabajador
+// Crear un nuevo trabajador ---- NO ESTOY ENTRANDO AQUÍ
 async function createWorker(workerData) {
   try {
     if (!workerData || !workerData.user_id || !workerData.name || !workerData.worker_type_id) {
@@ -44,19 +44,7 @@ async function createWorker(workerData) {
     console.log('createdWorker',createdWorker);
 
 
-    // 👉 Insertar preferencias por defecto
-    const { error: prefError } = await supabase
-      .from('user_preferences')
-      .insert({
-        user_id: createdWorker.user_id,
-        receive_emails_swap: true,
-        receive_emails_reminders: true
-      });
-      console.log('prefError',prefError);
-    if (prefError) {
-      console.error('⚠️ No se pudieron insertar las preferencias por defecto:', prefError.message);
-      // No lanzamos throw para no bloquear la creación del worker
-    }
+    
 
     return [createdWorker];
 
