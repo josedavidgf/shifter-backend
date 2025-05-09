@@ -39,7 +39,19 @@ async function getSwapsForMyShifts(workerId) {
         date,
         shift_type,
         shift_label,
-        shift_comments
+        shift_comments,
+         worker: worker_id (
+        worker_id,
+        name,
+        surname,
+        mobile_country_code,
+        mobile_phone
+        )
+      ),
+      requester:requester_id (
+        name,
+        surname,
+        email
       )
     `)
     .in('shift_id', shiftIds);
@@ -106,6 +118,13 @@ async function getSwapsAcceptedForMyShifts(workerId) {
         surname,
         mobile_country_code,
         mobile_phone
+      ),
+      requester:requester_id (
+        worker_id,
+        name,
+        surname,
+        mobile_country_code,
+        mobile_phone
       )
     )
     `)
@@ -151,7 +170,7 @@ async function respondToSwap(swapId, status, ownerId) {
   if (error) throw new Error(error.message);
 
   if (status === 'rejected') {
-    
+
     const [shift, requester] = await Promise.all([
       getShiftWithOwnerEmail(updatedSwap.shift_id),
       getWorkerById(updatedSwap.requester_id)
@@ -166,7 +185,7 @@ async function respondToSwap(swapId, status, ownerId) {
     await createUserEvent(requester.worker_id, 'swap_rejected', {
       shift_date: shift.date,
       shift_type: shift.shift_type,
-    });   
+    });
   }
 
   if (status === 'accepted') {
@@ -233,7 +252,7 @@ async function respondToSwap(swapId, status, ownerId) {
       await createUserEvent(requester.worker_id, 'swap_rejected', {
         shift_date: shift.date,
         shift_type: shift.shift_type,
-      });   
+      });
     }
 
 
@@ -256,7 +275,7 @@ async function respondToSwap(swapId, status, ownerId) {
       shift_type: fullShift.shift_type,
       offered_date: updatedSwap.offered_date,
       offered_type: updatedSwap.offered_type
-    });    
+    });
   }
 
   return updatedSwap;
@@ -280,6 +299,11 @@ async function getSwapsByRequesterId(workerId) {
           surname,
           email
         )
+      ),
+      requester:requester_id (
+        name,
+        surname,
+        email
       )
     `)
     .eq('requester_id', workerId)
@@ -305,6 +329,11 @@ async function getSwapByIdService(swapId, userId) {
           surname,
           email
         )
+      ),
+      requester:requester_id (
+        name,
+        surname,
+        email
       )
     `)
     .eq('swap_id', swapId)
@@ -519,7 +548,7 @@ async function createSwapWithMatching(data) {
       await createUserEvent(requester.worker_id, 'swap_rejected', {
         shift_date: shift.date,
         shift_type: shift.shift_type,
-      });      
+      });
     }
 
 
