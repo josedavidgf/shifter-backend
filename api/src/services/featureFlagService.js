@@ -1,4 +1,4 @@
-const supabase = require('../config/supabase');
+const supabase = require('../config/supabaseAdmin');
 
 async function isFeatureEnabled(featureName, workerId, hospitalId) {
   const { data, error } = await supabase

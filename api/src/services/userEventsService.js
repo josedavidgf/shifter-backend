@@ -1,7 +1,8 @@
 const supabase = require('../config/supabase');
+const supabaseAdmin = require('../config/supabaseAdmin'); // cliente que bypass RLS
 
 async function createUserEvent(workerId, type, metadata = {}) {
-  return await supabase
+  return await supabaseAdmin
     .from("user_events")
     .insert([{ worker_id: workerId, type, metadata }]);
 }

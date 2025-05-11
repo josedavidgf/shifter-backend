@@ -1,4 +1,4 @@
-const supabase = require('../config/supabase');
+const supabase = require('../config/supabaseAdmin');
 
 async function getAccessCode(code) {
   const { data, error } = await supabase
