@@ -1,15 +1,16 @@
-const supabase = require('../config/supabase');
+const supabase = require('../config/supabase'); // cliente normal
+const supabaseAdmin = require('../config/supabaseAdmin'); // cliente que bypass RLS
 
 // Obtener todos los trabajadores
 async function getAllWorkers() {
-  const { data, error } = await supabase.from('workers').select('*');
+  const { data, error } = await supabaseAdmin.from('workers').select('*');
   if (error) throw new Error(error.message);
   return data;
 }
 
 // Obtener un trabajador por ID
 async function getWorkerById(workerId) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('workers')
     .select('*')
     .eq('worker_id', workerId)
@@ -107,25 +108,25 @@ async function getWorkerHospital(workerId) {
 }
 
 async function getWorkerStats(workerId) {
-  const publishedShiftsQuery = supabase
+  const publishedShiftsQuery = supabaseAdmin
     .from('shifts')
     .select('shift_id', { count: 'exact' })
     .eq('worker_id', workerId)
     .eq('state', 'published');
 
-  const swappedShiftsQuery = supabase
+  const swappedShiftsQuery = supabaseAdmin
     .from('shifts')
     .select('shift_id', { count: 'exact' })
     .eq('worker_id', workerId)
     .eq('state', 'swapped');
 
-  const swapsProposedQuery = supabase
+  const swapsProposedQuery = supabaseAdmin
     .from('swaps')
     .select('swap_id', { count: 'exact' })
     .eq('requester_id', workerId)
     .eq('status', 'proposed');
 
-  const swapsAcceptedQuery = supabase
+  const swapsAcceptedQuery = supabaseAdmin
     .from('swaps')
     .select('swap_id', { count: 'exact' })
     .eq('requester_id', workerId)

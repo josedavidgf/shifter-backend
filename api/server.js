@@ -19,6 +19,7 @@ const gptShiftsRoutes = require('./src/routes/gptshifts'); // 🆕 Añadido
 const supportRoutes = require('./src/routes/supportRoutes');
 const userEventsRoutes = require('./src/routes/userEventsRouter');
 const featureFlagRoutes = require('./src/routes/featureFlagRoutes');
+const messagesRoutes = require('./src/routes/messagesRouter');
 
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
@@ -54,6 +55,7 @@ app.use('/api/gpt-shifts', gptShiftsRoutes); // 🧠 GPT endpoint
 app.use('/api/support', supportRoutes);
 app.use('/api/user-events',userEventsRoutes);
 app.use('/api/flags', featureFlagRoutes);
+app.use('/api/messages', messagesRoutes);
 
 
 // Iniciar servidor
