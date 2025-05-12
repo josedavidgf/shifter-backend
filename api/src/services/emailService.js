@@ -27,11 +27,17 @@ async function sendSwapProposalEmail(userId, toEmail, shift, offered) {
     to: toEmail,
     subject: '📩 Nuevo intercambio de turno propuesto',
     html: `
-        <p>Has recibido una propuesta de intercambio de turno de <strong>${offered.requester_name} ${offered.requester_surname} | ${offered.requester_email}</strong>.</p>
-        <p><strong>Tu turno:</strong> ${shift.date} — ${translateShiftType(shift.shift_type)}</p>
-        <p><strong>Turno ofrecido:</strong> ${offered.offered_date} — ${translateShiftType(offered.offered_type)}</p>
-        <p>Comentarios: ${offered.swap_comments}</p> 
+        <p>Has recibido una propuesta de intercambio de turno de <strong>${offered.requester_name} ${offered.requester_surname}</strong>.</p>
+        <p><strong>El turno que tienes publicado:</strong> ${shift.date} de ${translateShiftType(shift.shift_type)}</p>
+        <p><strong>El turno que te ofrecen:</strong> ${offered.offered_date} de ${translateShiftType(offered.offered_type)}</p>
+        <p>${offered.requester_name} ${offered.requester_surname} ha añadido los siguientes comentarios: ${offered.swap_comments}</p>
+        <br> 
         <p>Accede a la app para aceptar o rechazar esta propuesta.</p>
+        <br>
+        <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
+
+        <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
+        <p>El equipo de Tanda</p>
       `
   };
 
@@ -51,15 +57,18 @@ async function sendSwapAcceptedEmail(userId, toEmail, originalShift, proposedShi
     to: toEmail,
     subject: '✅ Tu intercambio ha sido aceptado',
     html: `
-        <p>🎉 Tu propuesta de intercambio ha sido <strong>aceptada</strong> por ${originalShift.owner_name} ${originalShift.owner_surname} ${originalShift.owner_email}</p>
+        <p>🎉 Tu propuesta de intercambio ha sido <strong>aceptada</strong> por ${originalShift.owner_name} ${originalShift.owner_surname}</p>
   
-        <p><strong>Turno original (que querías cambiar):</strong><br>
-        ${originalShift.date} — ${translateShiftType(originalShift.shift_type)})</p>
-  
-        <p><strong>Turno que ofreciste:</strong><br>
-        ${proposedShift.offered_date} — ${translateShiftType(proposedShift.offered_type)})</p>
-  
+        <p><strong>Turno original (que querías cambiar):</strong> ${originalShift.date} de ${translateShiftType(originalShift.shift_type)})</p>
+
+        <p><strong>Turno que ofreciste (que hará ${originalShift.owner_name}):</strong> ${proposedShift.offered_date} de ${translateShiftType(proposedShift.offered_type)})</p>
+
         <p>Accede a tu cuenta para ver los detalles actualizados.</p>
+        <br>
+        <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
+
+        <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
+        <p>El equipo de Tanda</p>
       `
   };
 
@@ -80,14 +89,17 @@ async function sendSwapAcceptedEmailOwner(userId, toEmail, originalShift, propos
     subject: '✅ Tu turno ha sido intercambiado automáticamente',
     html: `
         <p>🎉 El turno que publicaste ha sido intercambiado automáticamente por uno de los turnos que tenías disponible</p>
-  
-        <p><strong>Turno que tenías y publicaste:</strong><br>
-        ${originalShift.date} — ${translateShiftType(originalShift.shift_type)})</p>
-  
-        <p><strong>Turno te han cambiado y que vas a hacer :</strong><br>
-        ${proposedShift.offered_date} — ${translateShiftType(proposedShift.offered_type)})</p>
-  
+
+        <p><strong>Turno que tenías y publicaste:</strong> ${originalShift.date} de ${translateShiftType(originalShift.shift_type)})</p>
+
+        <p><strong>Turno te han cambiado y que vas a hacer :</strong> ${proposedShift.offered_date} de ${translateShiftType(proposedShift.offered_type)})</p>
+
         <p>Accede a tu cuenta para ver los detalles actualizados.</p>
+         <br>
+        <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
+
+        <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
+        <p>El equipo de Tanda</p>
       `
   };
 
@@ -107,15 +119,18 @@ async function sendSwapRejectedEmail(userId, toEmail, originalShift, proposedShi
     to: toEmail,
     subject: '❌ Tu intercambio ha sido rechazado',
     html: `
-        <p>Lamentablemente, tu propuesta de intercambio ha sido <strong>rechazada</strong> por ${originalShift.owner_name} ${originalShift.owner_surname} ${originalShift.owner_email}.</p>
+        <p>Lamentablemente, tu propuesta de intercambio ha sido <strong>rechazada</strong> por ${originalShift.owner_name} ${originalShift.owner_surname}.</p>
   
-        <p><strong>Turno que solicitaste cambiar:</strong><br>
-        ${originalShift.date} — ${translateShiftType(originalShift.shift_type)}</p>
+        <p><strong>Turno que solicitaste cambiar:</strong> ${originalShift.date} de ${translateShiftType(originalShift.shift_type)}</p>
   
-        <p><strong>Turno que ofreciste:</strong><br>
-        ${proposedShift.offered_date} — ${translateShiftType(proposedShift.offered_type)}</p>
+        <p><strong>Turno que ofreciste:</strong> ${proposedShift.offered_date} de ${translateShiftType(proposedShift.offered_type)}</p>
   
         <p>Puedes proponer otro cambio desde la app si lo deseas.</p>
+        <br>
+        <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
+
+        <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
+        <p>El equipo de Tanda</p>
       `
   };
 
@@ -140,6 +155,11 @@ async function sendReminderEmail(toEmail, shift, user) {
         <li><strong>Turno:</strong> ${translateShiftType(shift.shift_type)}</li>
       </ul>
       <p>¡Gracias por tu compromiso!</p>
+      <br>
+      <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
+
+      <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
+      <p>El equipo de Tanda</p>
     `
   };
 
@@ -178,7 +198,9 @@ Hemos recibido tu mensaje con el asunto: "${title}".
 Nuestro equipo lo está revisando y te responderemos lo antes posible.  
 Gracias por confiar en Tanda 🙌
 
-— El equipo de Tanda
+
+✉️ Este es un mensaje automático de Tanda. No respondas a este correo.
+El equipo de Tanda
     `.trim()
   };
 
