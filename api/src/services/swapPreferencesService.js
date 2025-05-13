@@ -1,4 +1,5 @@
 const supabase = require('../config/supabase');
+const supabaseAdmin = require('../config/supabaseAdmin'); // cliente que bypass RLS
 
 // Crear una nueva preferencia
 async function createSwapPreference(preferenceData) {
@@ -36,9 +37,19 @@ async function getMySwapPreferences(workerId) {
   if (error) throw new Error(error.message);
 }
 
+async function deleteSwapPreferenceAdmin(preferenceId) {
+  const { error } = await supabaseAdmin
+    .from('swap_preferences')
+    .delete()
+    .eq('preference_id', preferenceId);
+
+  if (error) throw new Error(error.message);
+}
+
 module.exports = {
     createSwapPreference,
     getMySwapPreferences,
-    deleteSwapPreference
+    deleteSwapPreference,
+    deleteSwapPreferenceAdmin
   };
   

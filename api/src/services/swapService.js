@@ -1,4 +1,5 @@
-const supabase = require('../config/supabase');
+const supabase = require('../config/supabase'); // cliente normal
+const supabaseAdmin = require('../config/supabaseAdmin'); // cliente que bypass RLS
 const { sendSwapAcceptedEmail, sendSwapAcceptedEmailOwner, sendSwapRejectedEmail } = require('./emailService');
 const { getShiftWithOwnerEmail } = require('./shiftService');
 const { getWorkerById } = require('./workerService');
@@ -442,17 +443,17 @@ async function createSwapWithMatching(data) {
     if (updateError) throw new Error(updateError.message);
 
     // 5. Marcar turno original como intercambiado
-    await supabase
+    await supabaseAdmin
       .from('shifts')
       .update({ state: 'swapped' })
       .eq('shift_id', shift_id);
 
     // 6. Eliminar preferencia cumplida
-    await deleteSwapPreference(match.preference_id);
+    await deleteSwapPreferenceAdmin(match.preference_id);
     // 7. Enviar email de aceptación automática
 
     const shiftId = updatedSwap.shift_id;
-    const { data: shiftWorkerId, error: shiftWorkerIdError } = await supabase
+    const { data: shiftWorkerId, error: shiftWorkerIdError } = await supabaseAdmin
       .from('shifts')
       .select('worker_id')
       .eq('shift_id', shiftId)
@@ -497,7 +498,7 @@ async function createSwapWithMatching(data) {
     });
 
     // Añadir el turno embebido (como en respondToSwap)
-    const { data: fullShift, error: shiftFetchError } = await supabase
+    const { data: fullShift, error: shiftFetchError } = await supabaseAdmin
       .from('shifts')
       .select('shift_id, date, shift_type, worker_id')
       .eq('shift_id', shift_id)
@@ -508,7 +509,7 @@ async function createSwapWithMatching(data) {
     updatedSwap.shift = fullShift;
 
     // 🔒 Cancelar otros swaps que usan el mismo turno ofrecido por el requester
-    await supabase
+    await supabaseAdmin
       .from('swaps')
       .update({ status: 'cancelled' })
       .eq('requester_id', updatedSwap.requester_id)
@@ -518,7 +519,7 @@ async function createSwapWithMatching(data) {
       .eq('status', 'proposed');
 
     // 🟥 Rechazar otras propuestas para este turno recibido
-    const { data: swapsToReject, error: rejectQueryError } = await supabase
+    const { data: swapsToReject, error: rejectQueryError } = await supabaseAdmin
       .from('swaps')
       .select('*')
       .eq('shift_id', updatedSwap.shift_id)
@@ -527,7 +528,7 @@ async function createSwapWithMatching(data) {
 
     if (rejectQueryError) throw new Error('No se pudieron consultar swaps a rechazar');
 
-    await supabase
+    await supabaseAdmin
       .from('swaps')
       .update({ status: 'rejected' })
       .eq('shift_id', updatedSwap.shift_id)
