@@ -10,7 +10,6 @@ const {
     getSwapsAcceptedForMyShifts,
 } = require('../services/swapService');
 const { sendSwapProposalEmail } = require('../services/emailService');
-const { sendPushNotification } = require('../services/pushService');
 const { createUserEvent } = require('../services/userEventsService');
 const { translateShiftType } = require('../utils/translateService'); // ✅ Import antes de usar
 
@@ -57,25 +56,12 @@ async function handleCreateSwap(req, res) {
             const shift_date = shift.date;
             const shift_type = shift.shift_type;
             const shift_owner_name = shift.owner_name;
-            const shift_owner_surname = shift.owner_surname;
+            const shift_owner_surname = shift.owner_surname; 
 
             // Enviar correo al trabajador con la propuesta de swap
             await sendSwapProposalEmail(
                 shift.owner_user_id,
                 shift.owner_email,
-                shift,
-                {
-                    requester_email: requester_email,
-                    requester_name: requester_name,
-                    requester_surname: requester_surname,
-                    offered_date,
-                    offered_type,
-                    offered_label,
-                    swap_comments,
-                }
-            );
-            await sendSwapProposalPush(
-                shift.owner_user_id,
                 shift,
                 {
                     requester_email: requester_email,
