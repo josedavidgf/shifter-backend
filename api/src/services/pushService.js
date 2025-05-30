@@ -55,5 +55,6 @@ async function sendSwapProposalPush(userId, shift, offered) {
 }
 
 module.exports = {
+  sendPushNotification,
   sendSwapProposalPush
 };
