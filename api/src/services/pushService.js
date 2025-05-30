@@ -17,7 +17,7 @@ async function sendPushNotification(externalUserId, heading, message, data = {})
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        app_id: process.env.ONESIGNAL_APP_ID,
+        app_id: ONESIGNAL_APP_ID,
         include_external_user_ids: [externalUserId],
         headings: { en: heading },
         contents: { en: message },
