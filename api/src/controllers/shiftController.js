@@ -29,7 +29,8 @@ async function handleCreateShift(req, res) {
             shift_label,
             speciality_id,
             shift_comments,
-            preferences
+            preferences,
+            requires_return,
         } = req.body;
 
         if (!speciality_id) {
@@ -50,6 +51,7 @@ async function handleCreateShift(req, res) {
             shift_label: 'regular',
             state: 'published',
             shift_comments,
+            requires_return,
         });
         //console.log('🟢 Shift creado:', newShift);
         //console.log('🟢 Preferences:', preferences);
@@ -104,6 +106,7 @@ async function handleGetShiftById(req, res) {
       shift_type,
       shift_label,
       shift_comments,
+      requires_return,
       worker:worker_id (
         worker_id,
         name,

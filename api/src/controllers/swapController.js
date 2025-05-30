@@ -23,9 +23,10 @@ async function handleCreateSwap(req, res) {
 
         const { shift_id, offered_date, offered_type, offered_label, swap_comments } = req.body;
         const today = new Date().toISOString().split('T')[0]; // formato YYYY-MM-DD
-        if (offered_date < today) {
+        if (offered_date && offered_date < today) {
             return res.status(400).json({ success: false, message: 'La fecha del swap no puede ser anterior a hoy.' });
         }
+
 
         // 🚀 Crea swap usando lógica de matching
         const swap = await createSwapWithMatching({
@@ -71,6 +72,7 @@ async function handleCreateSwap(req, res) {
                     offered_type,
                     offered_label,
                     swap_comments,
+                    swap_type
                 }
             );
             // Evento para el requester (quien propone)
@@ -80,7 +82,8 @@ async function handleCreateSwap(req, res) {
                 shift_date,
                 shift_type,
                 shift_owner_name,
-                shift_owner_surname
+                shift_owner_surname,
+                swap_type
             });
             // Evento para el owner (quien recibe la propuesta)
             await createUserEvent(shift.owner_worker_id, 'swap_received', {
@@ -89,7 +92,8 @@ async function handleCreateSwap(req, res) {
                 offered_date,
                 offered_type,
                 requester_name,
-                requester_surname
+                requester_surname,
+                swap_type
             });
         }
 
