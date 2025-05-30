@@ -15,127 +15,181 @@ const transporter = nodemailer.createTransport({
 });
 
 async function sendSwapProposalEmail(userId, toEmail, shift, offered) {
-  //('📤 Enviando email de propuesta de intercambio a:', userId);
   const allow = await shouldSendSwapEmail(userId);
   if (!allow) {
     console.log('📭 Usuario ha desactivado los emails. No se enviará.');
     return;
   }
+
+  const isNoReturn = offered.swap_type === 'no_return';
+
+  const body = `
+    <p>Has recibido una propuesta de intercambio de turno de <strong>${offered.requester_name} ${offered.requester_surname}</strong>.</p>
+    <p><strong>El turno que tienes publicado:</strong> ${shift.date} de ${translateShiftType(shift.shift_type)}</p>
+    ${isNoReturn
+      ? `<p>${offered.requester_name} se ofrece a cubrir este turno sin pedir otro a cambio.</p>`
+      : `<p><strong>El turno que te ofrecen:</strong> ${offered.offered_date} de ${translateShiftType(offered.offered_type)}</p>`
+    }
+    ${offered.swap_comments
+      ? `<p><strong>Comentarios:</strong> ${offered.swap_comments}</p>`
+      : ''
+    }
+    <br> 
+    <p>Accede a la app para aceptar o rechazar esta propuesta.</p>
+    <br>
+    <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
+    <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
+    <p>El equipo de Tanda</p>
+  `;
 
   const mailOptions = {
     from: `"Tanda" <${process.env.SMTP_USER}>`,
     to: toEmail,
     subject: '📩 Nuevo intercambio de turno propuesto',
-    html: `
-        <p>Has recibido una propuesta de intercambio de turno de <strong>${offered.requester_name} ${offered.requester_surname}</strong>.</p>
-        <p><strong>El turno que tienes publicado:</strong> ${shift.date} de ${translateShiftType(shift.shift_type)}</p>
-        <p><strong>El turno que te ofrecen:</strong> ${offered.offered_date} de ${translateShiftType(offered.offered_type)}</p>
-        <p>${offered.requester_name} ${offered.requester_surname} ha añadido los siguientes comentarios: ${offered.swap_comments}</p>
-        <br> 
-        <p>Accede a la app para aceptar o rechazar esta propuesta.</p>
-        <br>
-        <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
-
-        <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
-        <p>El equipo de Tanda</p>
-      `
+    html: body,
   };
 
   await transporter.sendMail(mailOptions);
 }
 
-async function sendSwapAcceptedEmail(userId, toEmail, originalShift, proposedShift) {
 
+async function sendSwapAcceptedEmail(userId, toEmail, originalShift, proposedShift) {
   const allow = await shouldSendSwapEmail(userId);
   if (!allow) {
     console.log('📭 Usuario ha desactivado los emails. No se enviará.');
     return;
   }
+
+  const isNoReturn = proposedShift.swap_type === 'no_return';
+
+  const body = `
+    <p>🎉 Tu propuesta de intercambio ha sido <strong>aceptada</strong> por ${originalShift.owner_name} ${originalShift.owner_surname}</p>
+
+    <p><strong>Turno original (que querías cambiar):</strong> ${originalShift.date} de ${translateShiftType(originalShift.shift_type)}</p>
+
+    ${isNoReturn
+      ? `<p>Has recibido el turno del ${originalShift.date} de ${translateShiftType(originalShift.shift_type)} sin necesidad de ofrecer otro a cambio.</p>`
+      : `<p><strong>Turno que ofreciste (que hará ${originalShift.owner_name}):</strong> ${proposedShift.offered_date} de ${translateShiftType(proposedShift.offered_type)}</p>`
+    }
+
+    <p>Accede a tu cuenta para ver los detalles actualizados.</p>
+    <br>
+    <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
+
+    <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
+    <p>El equipo de Tanda</p>
+  `;
 
   const mailOptions = {
     from: `"Tanda" <${process.env.SMTP_USER}>`,
     to: toEmail,
     subject: '✅ Tu intercambio ha sido aceptado',
-    html: `
-        <p>🎉 Tu propuesta de intercambio ha sido <strong>aceptada</strong> por ${originalShift.owner_name} ${originalShift.owner_surname}</p>
-  
-        <p><strong>Turno original (que querías cambiar):</strong> ${originalShift.date} de ${translateShiftType(originalShift.shift_type)})</p>
-
-        <p><strong>Turno que ofreciste (que hará ${originalShift.owner_name}):</strong> ${proposedShift.offered_date} de ${translateShiftType(proposedShift.offered_type)})</p>
-
-        <p>Accede a tu cuenta para ver los detalles actualizados.</p>
-        <br>
-        <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
-
-        <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
-        <p>El equipo de Tanda</p>
-      `
+    html: body,
   };
 
   await transporter.sendMail(mailOptions);
 }
 
-async function sendSwapAcceptedEmailOwner(userId, toEmail, originalShift, proposedShift) {
 
+async function sendSwapAcceptedEmailOwner(userId, toEmail, originalShift, proposedShift) {
   const allow = await shouldSendSwapEmail(userId);
   if (!allow) {
     console.log('📭 Usuario ha desactivado los emails. No se enviará.');
     return;
   }
 
+  const isNoReturn = proposedShift.swap_type === 'no_return';
+
+  const body = isNoReturn
+    ? `
+      <p>🎉 Alguien ha aceptado el turno que publicaste</p>
+
+      <p><strong>Turno cedido:</strong> ${originalShift.date} de ${translateShiftType(originalShift.shift_type)}</p>
+
+      <p>Este turno ha sido asignado automáticamente. Ya no aparecerá como disponible.</p>
+
+      <br>
+      <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
+
+      <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
+      <p>El equipo de Tanda</p>
+    `
+    : `
+      <p>🎉 El turno que publicaste ha sido intercambiado automáticamente por uno de los turnos que tenías disponible</p>
+
+      <p><strong>Turno que tenías y publicaste:</strong> ${originalShift.date} de ${translateShiftType(originalShift.shift_type)}</p>
+
+      <p><strong>Turno que vas a hacer ahora:</strong> ${proposedShift.offered_date} de ${translateShiftType(proposedShift.offered_type)}</p>
+
+      <p>Accede a tu cuenta para ver los detalles actualizados.</p>
+
+      <br>
+      <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
+
+      <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
+      <p>El equipo de Tanda</p>
+    `;
+
   const mailOptions = {
     from: `"Tanda" <${process.env.SMTP_USER}>`,
     to: toEmail,
     subject: '✅ Tu turno ha sido intercambiado automáticamente',
-    html: `
-        <p>🎉 El turno que publicaste ha sido intercambiado automáticamente por uno de los turnos que tenías disponible</p>
-
-        <p><strong>Turno que tenías y publicaste:</strong> ${originalShift.date} de ${translateShiftType(originalShift.shift_type)})</p>
-
-        <p><strong>Turno te han cambiado y que vas a hacer :</strong> ${proposedShift.offered_date} de ${translateShiftType(proposedShift.offered_type)})</p>
-
-        <p>Accede a tu cuenta para ver los detalles actualizados.</p>
-         <br>
-        <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
-
-        <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
-        <p>El equipo de Tanda</p>
-      `
+    html: body,
   };
 
   await transporter.sendMail(mailOptions);
 }
 
 async function sendSwapRejectedEmail(userId, toEmail, originalShift, proposedShift) {
-
   const allow = await shouldSendSwapEmail(userId);
   if (!allow) {
     console.log('📭 Usuario ha desactivado los emails. No se enviará.');
     return;
   }
 
+  const isNoReturn = proposedShift.swap_type === 'no_return';
+
+  const body = isNoReturn
+    ? `
+      <p>Lamentablemente, tu propuesta de cesión de turno ha sido <strong>rechazada</strong> por ${originalShift.owner_name} ${originalShift.owner_surname}.</p>
+
+      <p><strong>Turno que ofreciste ceder:</strong> ${originalShift.date} de ${translateShiftType(originalShift.shift_type)}</p>
+
+      <p>Puedes volver a publicarlo o gestionarlo desde la app si lo deseas.</p>
+
+      <br>
+      <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
+
+      <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
+      <p>El equipo de Tanda</p>
+    `
+    : `
+      <p>Lamentablemente, tu propuesta de intercambio ha sido <strong>rechazada</strong> por ${originalShift.owner_name} ${originalShift.owner_surname}.</p>
+  
+      <p><strong>Turno que solicitaste cambiar:</strong> ${originalShift.date} de ${translateShiftType(originalShift.shift_type)}</p>
+  
+      <p><strong>Turno que ofreciste:</strong> ${proposedShift.offered_date} de ${translateShiftType(proposedShift.offered_type)}</p>
+  
+      <p>Puedes proponer otro cambio desde la app si lo deseas.</p>
+
+      <br>
+      <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
+
+      <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
+      <p>El equipo de Tanda</p>
+    `;
+
   const mailOptions = {
     from: `"Tanda" <${process.env.SMTP_USER}>`,
     to: toEmail,
-    subject: '❌ Tu intercambio ha sido rechazado',
-    html: `
-        <p>Lamentablemente, tu propuesta de intercambio ha sido <strong>rechazada</strong> por ${originalShift.owner_name} ${originalShift.owner_surname}.</p>
-  
-        <p><strong>Turno que solicitaste cambiar:</strong> ${originalShift.date} de ${translateShiftType(originalShift.shift_type)}</p>
-  
-        <p><strong>Turno que ofreciste:</strong> ${proposedShift.offered_date} de ${translateShiftType(proposedShift.offered_type)}</p>
-  
-        <p>Puedes proponer otro cambio desde la app si lo deseas.</p>
-        <br>
-        <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
-
-        <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
-        <p>El equipo de Tanda</p>
-      `
+    subject: '❌ Tu propuesta ha sido rechazada',
+    html: body,
   };
 
   await transporter.sendMail(mailOptions);
 }
+
+
 async function sendReminderEmail(toEmail, shift, user) {
   const allow = await shouldSendReminderEmail(user.id);
   if (!allow) {
