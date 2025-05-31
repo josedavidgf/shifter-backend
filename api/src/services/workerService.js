@@ -65,7 +65,7 @@ async function getWorkerByUserId(userId) {
       workers_specialities ( speciality_id, specialities ( speciality_category ) )
     `)
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
   if (error) throw new Error(error.message);
   return data;
