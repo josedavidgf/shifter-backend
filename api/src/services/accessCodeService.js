@@ -11,6 +11,21 @@ async function getAccessCode(code) {
   return data;
 }
 
+async function getAccessCodeByHospitalAndType(hospitalId, workerTypeId) {
+
+  console.log('Fetching access code for hospitalId:', hospitalId, 'and workerTypeId:', workerTypeId);
+  const { data, error } = await supabase
+    .from('access_codes')
+    .select('code')
+    .eq('hospital_id', hospitalId)
+    .eq('worker_type_id', workerTypeId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return data?.code || null;
+}
+
 module.exports = {
   getAccessCode,
+  getAccessCodeByHospitalAndType,
 };
