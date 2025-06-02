@@ -15,7 +15,27 @@ const validateAccessCode = async (req, res) => {
     return res.status(404).json({ success: false, message: 'Invalid code' });
   }
 };
+const handleGetAccessCode = async (req, res) => {
+  const { hospitalId, workerTypeId } = req.query;
+
+  console.log('Received request to get access code for hospitalId:', hospitalId, 'and workerTypeId:', workerTypeId);
+
+  if (!hospitalId || !workerTypeId) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  try {
+    const code = await accessCodeService.getAccessCodeByHospitalAndType(hospitalId, workerTypeId);
+    if (!code) return res.status(404).json({ error: 'Code not found' });
+
+    return res.json({ code });
+  } catch (err) {
+    console.error('[getAccessCode] Error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
 
 module.exports = {
   validateAccessCode,
+  handleGetAccessCode 
 };
