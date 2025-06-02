@@ -17,10 +17,10 @@ const accessCodeRoutes = require('./src/routes/accessCodeRoutes');
 const swapPreferencesRoutes = require('./src/routes/swapPreferencesRoutes');
 const gptShiftsRoutes = require('./src/routes/gptshifts'); // 🆕 Añadido
 const supportRoutes = require('./src/routes/supportRoutes');
-const userEventsRoutes = require('./src/routes/userEventsRouter');
+const userEventsRoutes = require('./src/routes/userEventsRoutes');
 const featureFlagRoutes = require('./src/routes/featureFlagRoutes');
-const messagesRoutes = require('./src/routes/messagesRouter');
-
+const messagesRoutes = require('./src/routes/messagesRoutes');
+const pushRoutes = require('./src/routes/pushRoutes');
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
 
@@ -56,6 +56,7 @@ app.use('/api/support', supportRoutes);
 app.use('/api/user-events',userEventsRoutes);
 app.use('/api/flags', featureFlagRoutes);
 app.use('/api/messages', messagesRoutes);
+app.use('/push', pushRoutes);
 
 
 // Iniciar servidor
