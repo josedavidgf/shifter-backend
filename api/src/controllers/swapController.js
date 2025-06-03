@@ -55,10 +55,12 @@ async function handleCreateSwap(req, res) {
             const requester_email = worker.email;
             const requester_name = worker.name;
             const requester_surname = worker.surname;
+            const requester_full_name = `${requester_name} ${requester_surname}`;
             const shift_date = shift.date;
             const shift_type = shift.shift_type;
             const shift_owner_name = shift.owner_name;
             const shift_owner_surname = shift.owner_surname;
+            const swap_type = swap.swap_type
 
             // Enviar correo al trabajador con la propuesta de swap
             await sendSwapProposalEmail(
@@ -79,11 +81,15 @@ async function handleCreateSwap(req, res) {
             // 🟣 Enviar notificación push si es posible
             if (shift.owner_user_id) {
                 try {
-                    const pushMessage = notifications.swapProposed({
-                        from: `${requester_name} ${requester_surname}`,
+                    const pushPayload = {
+                        from: requester_full_name || 'Alguien',
                         to: shift.date,
-                        type: shift.shift_type,
-                    });
+                        shift_type: shift.shift_type,
+                    };
+
+                    const pushMessage = notifications.swapProposed(pushPayload);
+
+                    console.log('🟢 Mensaje construido correctamente:', pushMessage);
 
                     const result = await sendPushToUser(shift.owner_user_id, pushMessage);
 
@@ -91,9 +97,10 @@ async function handleCreateSwap(req, res) {
                         console.warn('⚠️ Push no enviada:', result.reason);
                     }
                 } catch (err) {
-                    console.error('❌ Error al enviar push:', err.message);
+                    console.error('❌ Error generando o enviando push:', err);
                 }
             }
+
             // Evento para el requester (quien propone)
             await createUserEvent(worker.worker_id, 'swap_proposed', {
                 offered_date,
