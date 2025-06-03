@@ -85,6 +85,7 @@ async function handleCreateSwap(req, res) {
                         from: requester_full_name || 'Alguien',
                         to: shift.date,
                         shift_type: shift.shift_type,
+                        swap_id: swap.swap_id,
                     };
 
                     const pushMessage = notifications.swapProposed(pushPayload);

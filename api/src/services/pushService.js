@@ -1,6 +1,10 @@
 const supabase = require('../config/supabase');
 const axios = require('axios');
 
+const { getUsersForPublishedShift } = require('./workerService');
+const { shouldSendShiftPublishedPushNotification } = require('./userPreferencesService');
+const notifications = require('../utils/notifications');
+
 async function savePushToken(userId, token) {
     console.log('Saving push token for user:', userId, 'Token:', token);
     const { error } = await supabase
@@ -37,8 +41,25 @@ async function sendPushToUser(userId, message) {
     return { sent: true };
 }
 
+async function notifyEligibleWorkersOfNewShift({ hospital_id, worker_type_id, speciality_id, shift_date, shift_type, requires_return, shift_id, shift_owner_name, shift_owner_surname }) {
+    const candidates = await getUsersForPublishedShift({ hospital_id, worker_type_id, speciality_id });
+    for (const { user_id } of candidates) {
+        const wantsPush = await shouldSendShiftPublishedPushNotification(user_id);
+        if (!wantsPush) continue;
+
+        const msg = requires_return
+            ? notifications.shiftPublishedWithReturn({ publisher: `${shift_owner_name} ${shift_owner_surname}`, shiftType: shift_type, shiftDate: shift_date, shiftId: shift_id })
+            : notifications.shiftPublishedNoReturn({ publisher: `${shift_owner_name} ${shift_owner_surname}`, shiftType: shift_type, shiftDate: shift_date, shiftId: shift_id });
+
+        const result = await sendPushToUser(user_id, msg);
+        if (!result.sent) console.warn(`⚠️ Push no enviada a ${user_id}:`, result.reason);
+    }
+}
+
+
 
 module.exports = {
     savePushToken,
     sendPushToUser,
+    notifyEligibleWorkersOfNewShift,
 };
