@@ -107,6 +107,22 @@ async function getWorkerHospital(workerId) {
   return data;
 }
 
+async function getUsersForPublishedShift({ hospital_id, worker_type_id, speciality_id }) {
+
+  const { data, error } = await supabase
+    .rpc('get_eligible_users_for_shift', {
+      hospital_id,
+      worker_type_id,
+      speciality_id,
+    });
+
+  if (error) throw new Error(error.message);
+
+  return data;
+}
+
+
+
 async function getWorkerStats(workerId) {
   const publishedShiftsQuery = supabaseAdmin
     .from('shifts')
@@ -170,5 +186,6 @@ module.exports = {
   deleteWorker,
   getWorkerByUserId,
   getWorkerHospital,
-  getWorkerStats
+  getWorkerStats,
+  getUsersForPublishedShift
 };

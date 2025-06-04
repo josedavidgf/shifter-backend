@@ -318,6 +318,29 @@ const updateWorkerInfo = async (req, res) => {
   res.status(200).json({ success: true });
 };
 
+const updateWorkerType = async (req, res) => {
+  const userId = req.user?.sub;
+  const { worker_type_id } = req.body;
+
+  const updateData = {};
+  if (worker_type_id !== undefined) updateData.worker_type_id = worker_type_id;
+
+  const { data: worker } = await supabase
+    .from('workers')
+    .select('worker_id')
+    .eq('user_id', userId)
+    .single();
+
+  const { error } = await supabase
+    .from('workers')
+    .update(updateData)
+    .eq('worker_id', worker.worker_id);
+
+  if (error) return res.status(400).json({ success: false, message: error.message });
+
+  res.status(200).json({ success: true });
+};
+
 const updateWorkerHospital = async (req, res) => {
   const userId = req.user?.sub;
   const { hospital_id } = req.body;
@@ -489,5 +512,6 @@ module.exports = {
   updateWorkerSpeciality,
   handleGetWorkerStats,
   completeOnboarding,
-  initializeWorker
+  initializeWorker,
+  updateWorkerType
 };

@@ -11,6 +11,7 @@ const {
 } = require('../services/shiftService');
 const { getWorkerByUserId, getWorkerHospital } = require('../services/workerService');
 const supabase = require('../config/supabase');
+const { notifyEligibleWorkersOfNewShift } = require('../services/pushService');
 
 
 async function handleCreateShift(req, res) {
@@ -53,6 +54,27 @@ async function handleCreateShift(req, res) {
             shift_comments,
             requires_return,
         });
+
+        try {
+            const payload = {
+                hospital_id: hospital,
+                worker_type_id: worker.worker_type_id,
+                speciality_id,
+                shift_date: date,
+                shift_type,
+                requires_return,
+                shift_id: newShift.shift_id,
+                shift_owner_name: worker.name,
+                shift_owner_surname: worker.surname,
+            };
+            console.log('🔔 Enviando notificaciones a trabajadores elegibles por nuevo turno:', payload);
+            await notifyEligibleWorkersOfNewShift(payload);
+        } catch (err) {
+            console.error('❌ Error al enviar notificaciones por nuevo turno:', err.message);
+        }
+
+
+
         //console.log('🟢 Shift creado:', newShift);
         //console.log('🟢 Preferences:', preferences);
         if (Array.isArray(preferences) && preferences.length > 0) {

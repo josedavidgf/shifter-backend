@@ -12,9 +12,7 @@ const {
 const { sendSwapProposalEmail } = require('../services/emailService');
 const { createUserEvent } = require('../services/userEventsService');
 const { translateShiftType } = require('../utils/translateService'); // ✅ Import antes de usar
-const notifications = require('../utils/notifications');
-const { sendPushToUser } = require('../services/pushService');
-
+const pushService = require('../services/pushService');
 
 async function handleCreateSwap(req, res) {
     try {
@@ -79,27 +77,13 @@ async function handleCreateSwap(req, res) {
                 }
             );
             // 🟣 Enviar notificación push si es posible
-            if (shift.owner_user_id) {
-                try {
-                    const pushPayload = {
-                        from: requester_full_name || 'Alguien',
-                        to: shift.date,
-                        shift_type: shift.shift_type,
-                    };
-
-                    const pushMessage = notifications.swapProposed(pushPayload);
-
-                    console.log('🟢 Mensaje construido correctamente:', pushMessage);
-
-                    const result = await sendPushToUser(shift.owner_user_id, pushMessage);
-
-                    if (!result.sent) {
-                        console.warn('⚠️ Push no enviada:', result.reason);
-                    }
-                } catch (err) {
-                    console.error('❌ Error generando o enviando push:', err);
-                }
-            }
+            await pushService.sendSwapProposedNotification({
+                userId: shift.owner_user_id,
+                from: requester_full_name,
+                shiftDate: shift.date,
+                shiftType: shift.shift_type,
+                swapId: swap.swap_id
+            });
 
             // Evento para el requester (quien propone)
             await createUserEvent(worker.worker_id, 'swap_proposed', {
