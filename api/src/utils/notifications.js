@@ -11,7 +11,7 @@ function swapProposed({ from, to, shift_type, swap_id }) {
         body: `${from} quiere intercambiar su turno por tu turno del ${friendlyDate} de ${translatedType}.`,
         data: {
             route: 'SwapDetails',
-            params: { swapId },
+            params: { swap_id },
             type: 'swap_proposed',
         },
     };
