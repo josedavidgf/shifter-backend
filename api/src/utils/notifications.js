@@ -1,3 +1,4 @@
+const { param } = require('../routes/pushRoutes');
 const { formatFriendlyDate } = require('./formatFriendlyDate');
 const { translateShiftType } = require('./translateService');
 
@@ -9,11 +10,9 @@ function swapProposed({ from, to, shift_type, swap_id }) {
         title: 'Nuevo intercambio propuesto',
         body: `${from} quiere intercambiar su turno por tu turno del ${friendlyDate} de ${translatedType}.`,
         data: {
+            route: 'SwapDetails',
+            params: { swapId },
             type: 'swap_proposed',
-            from,
-            to,
-            shift_type,
-            swap_id,
         },
     };
 }
@@ -22,20 +21,26 @@ function shiftReminder({ shiftType, date }) {
     return {
         title: `Turno programado: ${capitalize(shiftType)}`,
         body: `Recuerda que mañana tienes un turno de ${shiftType}.`,
-        data: { shiftType, date },
+        data: {
+            route: 'Calendar',
+            params: {},
+            type: 'shift_reminder',
+        },
     };
 }
 
 function swapAccepted({ by, shiftDate, shiftType, swapId }) {
     const friendlyDate = formatFriendlyDate(shiftDate || '');
     const translatedType = translateShiftType(shiftType || '');
+    const byFullName = `${by.name} ${by.surname}` || 'Un colega';
 
     return {
         title: 'Intercambio aceptado',
-        body: `${by} aceptó tu intercambio del ${friendlyDate} (${translatedType}).`,
+        body: `${byFullName} aceptó tu intercambio del ${friendlyDate} ${translatedType}.`,
         data: {
+            route: 'SwapDetails',
+            params: { swapId },
             type: 'swap_accepted',
-            swap_id: swapId,
         },
     };
 }
@@ -43,13 +48,15 @@ function swapAccepted({ by, shiftDate, shiftType, swapId }) {
 function swapRejected({ by, shiftDate, shiftType, swapId }) {
     const friendlyDate = formatFriendlyDate(shiftDate || '');
     const translatedType = translateShiftType(shiftType || '');
+    const byFullName = `${by.name} ${by.surname}` || 'Un colega';
 
     return {
         title: 'Intercambio rechazado',
-        body: `${by} rechazó tu intercambio del ${friendlyDate} (${translatedType}).`,
+        body: `${byFullName} rechazó tu intercambio del ${friendlyDate} ${translatedType}.`,
         data: {
+            route: 'SwapDetails',
+            params: { swapId },
             type: 'swap_rejected',
-            swap_id: swapId,
         },
     };
 }
@@ -64,7 +71,8 @@ function shiftPublishedWithReturn({ publisher, shiftType, shiftDate, shiftId }) 
         body: `${publisher} ha publicado un turno con devolución el ${friendlyDate} ${translatedType}.`,
         data: {
             type: 'shift_published_with_return',
-            shift_id: shiftId,
+            route: 'ProposeSwap',
+            params: { shiftId },
         },
     };
 }
