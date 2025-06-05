@@ -83,10 +83,10 @@ function shiftPublishedNoReturn({ publisher, shiftType, shiftDate, shiftId }) {
     const translatedType = translateShiftType(shiftType || '');
     return {
         title: 'Turno sin devolución disponible',
-        body: `${publisher} ha publicado un turno sin devolución el ${friendlyDate} (${translatedType}).`,
+        body: `${publisher} ha publicado un turno sin devolución el ${friendlyDate} ${translatedType}.`,
         data: {
             type: 'shift_published_no_return',
-            shift_id: shiftId,
+            shift_id: { shiftId },
         },
     };
 }
