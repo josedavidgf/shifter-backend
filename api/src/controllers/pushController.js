@@ -1,11 +1,12 @@
-const pushService = require('../services/pushService');
+const { savePushToken } = require('../services/pushTokenService');
+
 
 const registerPushToken = async (req, res) => {
   try {
     const { token, userId } = req.body;
     if (!token || !userId) return res.status(400).json({ error: 'Faltan datos' });
-
-    await pushService.savePushToken(userId, token);
+    console.log('Registering push token for user:', userId, 'Token:', token);
+    await savePushToken(userId, token);
     return res.json({ success: true });
   } catch (err) {
     console.error('[registerPushToken]', err.message);
