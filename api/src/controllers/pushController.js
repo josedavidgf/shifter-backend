@@ -20,8 +20,11 @@ const sendTestNotification = async (req, res) => {
     const result = await sendPushToUser(userId, {
       title: 'Prueba de Swap',
       body: 'Haz clic para ver el swap.',
-      route: 'SwapDetails',
-      params: { swapId: 'ff1ca629-6bd3-4ca9-b573-31b697a6401f' },
+      data: {
+        type: 'test',
+        route: 'SwapDetails',
+        params: { swapId: 'ff1ca629-6bd3-4ca9-b573-31b697a6401f' },
+      },
     });
 
 
