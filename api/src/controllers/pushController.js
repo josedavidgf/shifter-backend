@@ -17,7 +17,7 @@ const sendTestNotification = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const result = await pushService.sendPushToUser(userId, {
+    const result = await sendPushToUser(userId, {
       title: 'Prueba de Swap',
       body: 'Haz clic para ver el swap.',
       route: 'SwapDetails',
