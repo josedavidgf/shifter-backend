@@ -1,5 +1,4 @@
-const { savePushToken } = require('../services/pushTokenService');
-
+const { savePushToken, sendPushToUser } = require('../services/pushTokenService');
 
 const registerPushToken = async (req, res) => {
   try {
@@ -18,7 +17,7 @@ const sendTestNotification = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const result = await pushService.sendPushToUser(userId, {
+    const result = await sendPushToUser(userId, {
       title: 'Notificación de prueba',
       body: 'Esto es una prueba de notificación push.',
     });
