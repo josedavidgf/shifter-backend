@@ -4,6 +4,6 @@ const { registerPushToken, sendTestNotification } = require('../controllers/push
 const protectRoute = require('../middlewares/authMiddleware');
 
 router.post('/register', protectRoute, registerPushToken);
-router.get('/test/:userId', protectRoute, sendTestNotification);
+router.get('/test/:userId', sendTestNotification);
 
 module.exports = router;
