@@ -6,7 +6,7 @@ const { getWorkerById } = require('./workerService');
 const { getMySwapPreferences, deleteSwapPreference } = require('./swapPreferencesService');
 const { applySwapToMonthlySchedule } = require('./swapScheduleService');
 const { createUserEvent } = require('./userEventsService');
-const pushService = require('./pushService');
+const {sendSwapRespondedNotification} = require('./pushService');
 
 
 // TODO: Verificar si esta función sigue siendo necesaria después del MVP.
@@ -186,7 +186,7 @@ async function respondToSwap(swapId, status, ownerId) {
       shift,
       updatedSwap
     );
-    await pushService.sendSwapRespondedNotification({
+    await sendSwapRespondedNotification({
       userId: requester.user_id,
       type: 'rejected',
       by: { name: shift.owner_name, surname: shift.owner_surname },
@@ -261,7 +261,7 @@ async function respondToSwap(swapId, status, ownerId) {
         shift,
         swap
       );
-      await pushService.sendSwapRespondedNotification({
+      await sendSwapRespondedNotification({
         userId: requester.user_id,
         type: 'rejected',
         by: { name: shift.owner_name, surname: shift.owner_surname },
@@ -288,13 +288,14 @@ async function respondToSwap(swapId, status, ownerId) {
       shift,
       updatedSwap
     );
-    await pushService.sendSwapRespondedNotification({
+    console.log ('updatedSwap',updatedSwap);
+    await sendSwapRespondedNotification({
       userId: requester.user_id,
       type: 'accepted',
       by: { name: shift.owner_name, surname: shift.owner_surname },
       shiftDate: shift.date,
       shiftType: shift.shift_type,
-      swapId: updatedSwap.id,
+      swapId: updatedSwap.swap_id,
     });
     await createUserEvent(updatedSwap.requester_id, 'swap_accepted', {
       shift_date: fullShift.date,
@@ -515,7 +516,8 @@ async function createSwapWithMatching(data) {
       shift,
       updatedSwap
     );
-    await pushService.sendSwapRespondedNotification({
+    console.log('updatedSwap',updatedSwap);
+    await sendSwapRespondedNotification({
       userId: requester.user_id,
       type: 'accepted',
       by: { name: shift.owner_name, surname: shift.owner_surname },
@@ -536,7 +538,7 @@ async function createSwapWithMatching(data) {
       shift,
       updatedSwap
     );
-    await pushService.sendSwapRespondedNotification({
+    await sendSwapRespondedNotification({
       userId: owner.user_id,
       type: 'accepted',
       by: { name: requester.requester_name, surname: requester.requester_surname },
@@ -602,7 +604,7 @@ async function createSwapWithMatching(data) {
         shift,
         swap
       );
-      await pushService.sendSwapRespondedNotification({
+      await sendSwapRespondedNotification({
         userId: requester.user_id,
         type: 'rejected',
         by: { name: shift.owner_name, surname: shift.owner_surname },

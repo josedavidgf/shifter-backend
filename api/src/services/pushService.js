@@ -1,6 +1,6 @@
 const supabase = require('../config/supabase');
 const axios = require('axios');
-const { sendPushToUser } = require('./pushTokenService');
+const { sendPushToUser } = require('./pushSenderService');
 
 
 const { getUsersForPublishedShift } = require('./workerService');
@@ -10,7 +10,7 @@ const {
     shouldSendSwapPushNotification
 } = require('./userPreferencesService');
 const { } = require('./userPreferencesService');
-const { swapAccepted, swapRejected, swapProposed } = require('../utils/notifications');
+const { swapAccepted, swapRejected, swapProposed, shiftPublishedWithReturn, shiftPublishedNoReturn } = require('../utils/notifications');
 
 const notifications = require('../utils/notifications');
 
@@ -25,22 +25,27 @@ async function notifyEligibleWorkersOfNewShift({
     requires_return,
     shift_id,
     shift_owner_name,
-    shift_owner_surname
+    shift_owner_surname,
+    shift_owner_user_id
 }) {
     const candidates = await getUsersForPublishedShift({ hospital_id, worker_type_id, speciality_id });
+    console.log('candidates', candidates);
 
-    const pushTasks = candidates.map(async ({ user_id }) => {
+    const filteredCandidates = candidates.filter(c => c.user_id !== shift_owner_user_id);
+
+
+    const pushTasks = filteredCandidates.map(async ({ user_id }) => {
         const wantsPush = await shouldSendShiftPublishedPushNotification(user_id);
         if (!wantsPush) return { user_id, sent: false, reason: 'Preferencias' };
 
         const msg = requires_return
-            ? notifications.shiftPublishedWithReturn({
+            ? shiftPublishedWithReturn({
                 publisher: `${shift_owner_name} ${shift_owner_surname}`,
                 shiftType: shift_type,
                 shiftDate: shift_date,
                 shiftId: shift_id
             })
-            : notifications.shiftPublishedNoReturn({
+            : shiftPublishedNoReturn({
                 publisher: `${shift_owner_name} ${shift_owner_surname}`,
                 shiftType: shift_type,
                 shiftDate: shift_date,
@@ -63,6 +68,8 @@ async function sendSwapRespondedNotification({ userId, type, by, shiftDate, shif
     const shouldSend = await shouldSendSwapRespondedPushNotification(userId);
     if (!shouldSend) return;
 
+    console.log('swapId sendSwapRespondedNotification', swapId);
+
     const payload = type === 'accepted'
         ? swapAccepted({ by, shiftDate, shiftType, swapId })
         : swapRejected({ by, shiftDate, shiftType, swapId });
@@ -74,6 +81,8 @@ async function sendSwapRespondedNotification({ userId, type, by, shiftDate, shif
 async function sendSwapProposedNotification({ userId, from, shiftDate, shiftType, swapId }) {
     const shouldSend = await shouldSendSwapPushNotification(userId);
     if (!shouldSend) return;
+
+    console.log('swapId', swapId);
 
     const payload = swapProposed({ from, to: shiftDate, shift_type: shiftType, swap_id: swapId });
     console.log('Sending swap proposed notification:', payload);

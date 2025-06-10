@@ -1,17 +1,5 @@
-const { savePushToken, sendPushToUser } = require('../services/pushTokenService');
-
-const registerPushToken = async (req, res) => {
-  try {
-    const { token, userId } = req.body;
-    if (!token || !userId) return res.status(400).json({ error: 'Faltan datos' });
-    console.log('Registering push token for user:', userId, 'Token:', token);
-    await savePushToken(userId, token);
-    return res.json({ success: true });
-  } catch (err) {
-    console.error('[registerPushToken]', err.message);
-    return res.status(500).json({ error: err.message });
-  }
-};
+const { sendPushToUses } = require('../services/pushSenderService');
+const axios = require('axios');
 
 const sendTestNotification = async (req, res) => {
   try {
@@ -27,7 +15,6 @@ const sendTestNotification = async (req, res) => {
       },
     });
 
-
     if (result.sent) return res.json({ success: true });
     return res.status(404).json({ error: result.reason });
   } catch (err) {
@@ -36,8 +23,6 @@ const sendTestNotification = async (req, res) => {
   }
 };
 
-
 module.exports = {
-  registerPushToken,
   sendTestNotification,
 };

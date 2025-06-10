@@ -12,7 +12,7 @@ const {
 const { sendSwapProposalEmail } = require('../services/emailService');
 const { createUserEvent } = require('../services/userEventsService');
 const { translateShiftType } = require('../utils/translateService'); // ✅ Import antes de usar
-const pushService = require('../services/pushService');
+const {sendSwapProposedNotification} = require('../services/pushService');
 
 async function handleCreateSwap(req, res) {
     try {
@@ -77,7 +77,7 @@ async function handleCreateSwap(req, res) {
                 }
             );
             // 🟣 Enviar notificación push si es posible
-            await pushService.sendSwapProposedNotification({
+            await sendSwapProposedNotification({
                 userId: shift.owner_user_id,
                 from: requester_full_name,
                 shiftDate: shift.date,

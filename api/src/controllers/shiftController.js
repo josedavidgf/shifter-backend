@@ -66,6 +66,7 @@ async function handleCreateShift(req, res) {
                 shift_id: newShift.shift_id,
                 shift_owner_name: worker.name,
                 shift_owner_surname: worker.surname,
+                shift_owner_user_id: worker.user_id,
             };
             console.log('🔔 Enviando notificaciones a trabajadores elegibles por nuevo turno:', payload);
             await notifyEligibleWorkersOfNewShift(payload);
