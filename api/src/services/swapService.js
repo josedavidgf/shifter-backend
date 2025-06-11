@@ -7,6 +7,7 @@ const { getMySwapPreferences, deleteSwapPreference } = require('./swapPreference
 const { applySwapToMonthlySchedule } = require('./swapScheduleService');
 const { createUserEvent } = require('./userEventsService');
 const {sendSwapRespondedNotification} = require('./pushService');
+const e = require('express');
 
 
 // TODO: Verificar si esta función sigue siendo necesaria después del MVP.
@@ -130,6 +131,83 @@ async function getSwapsAcceptedForMyShifts(workerId) {
       )
     `)
     .eq('status', 'accepted')
+    .eq('requester_id', workerId);
+  if (errRequester) throw new Error(errRequester.message);
+
+  // 3. Combinar ambos resultados
+  return [...(swapsAsOwner || []), ...(swapsAsRequester || [])];
+}
+
+async function getSwapsAcceptedForMyShiftsForDate(workerId, dateStr) {
+  // 1. Buscar swaps donde worker es OWNER de turno (como tienes ahora)
+  const { data: myShifts, error: errShifts } = await supabase
+    .from('shifts')
+    .select('shift_id')
+    .eq('worker_id', workerId)
+    .eq('date', dateStr);
+  if (errShifts) throw new Error(errShifts.message);
+
+  const shiftIds = myShifts.map(s => s.shift_id);
+
+  const { data: swapsAsOwner, error: errOwner } = await supabase
+    .from('swaps')
+    .select(`
+      *,
+      shift:shift_id (
+        shift_id,
+        date,
+        shift_type,
+        shift_label,
+        shift_comments,
+        worker:worker_id (
+          worker_id,
+          name,
+          surname,
+          mobile_country_code,
+          mobile_phone
+        )
+      ),
+      requester:requester_id (
+        worker_id,
+        name,
+        surname,
+        mobile_country_code,
+        mobile_phone
+      )
+    `)
+    .eq('status', 'accepted')
+    .in('shift_id', shiftIds);
+  if (errOwner) throw new Error(errOwner.message);
+
+  // 2. Buscar swaps donde worker es REQUESTER
+  const { data: swapsAsRequester, error: errRequester } = await supabase
+    .from('swaps')
+    .select(`
+      *,
+      shift:shift_id (
+        shift_id,
+        date,
+        shift_type,
+        shift_label,
+        shift_comments,
+        worker:worker_id (
+          worker_id,
+          name,
+          surname,
+          mobile_country_code,
+          mobile_phone
+        )
+      ),
+      requester:requester_id (
+        worker_id,
+        name,
+        surname,
+        mobile_country_code,
+        mobile_phone
+      )
+    `)
+    .eq('status', 'accepted')
+    .eq('offered_date', dateStr)
     .eq('requester_id', workerId);
   if (errRequester) throw new Error(errRequester.message);
 
@@ -638,5 +716,6 @@ module.exports = {
   cancelSwap,
   getSwapByIdService,
   getSwapsByShiftIdService,
-  getSwapsAcceptedForMyShifts
+  getSwapsAcceptedForMyShifts,
+  getSwapsAcceptedForMyShiftsForDate
 };
