@@ -9,6 +9,7 @@ const {
     handleGetSwapsById,
     handleGetSwapsByShiftId,
     handleGetAcceptedSwaps,
+    handleGetAcceptedSwapsForDate,
  } = require('../controllers/swapController');
 const protectRoute = require('../middlewares/authMiddleware');
 
@@ -16,6 +17,7 @@ router.post('/', protectRoute, handleCreateSwap);
 router.get('/received', protectRoute, handleGetReceivedSwaps);
 router.get('/sent', protectRoute, handleGetSentSwaps);
 router.get('/accepted', protectRoute, handleGetAcceptedSwaps);
+router.get('/accepted/:dateStr', protectRoute, handleGetAcceptedSwapsForDate);
 router.get('/:id', protectRoute, handleGetSwapsById);
 router.patch('/:id/cancel', protectRoute, handleCancelSwap);
 router.patch('/:id/respond', protectRoute, handleRespondToSwap);

@@ -18,13 +18,7 @@ async function applySwapToMonthlySchedule(swap) {
   // Paso 1: marcar turno original del owner como traspasado
   await supabase
     .from('monthly_schedules')
-    .update({
-      source: 'swapped_out',
-      swap_id: swap.swap_id,
-      related_worker_id: requester_id,
-      related_worker_name: requester.name,
-      related_worker_surname: requester.surname,
-    })
+    .delete()
     .eq('worker_id', ownerId)
     .eq('date', ownerDate)
     .eq('shift_type', ownerType);
@@ -49,13 +43,7 @@ async function applySwapToMonthlySchedule(swap) {
     // Paso 3: marcar turno original del requester como traspasado
     await supabase
       .from('monthly_schedules')
-      .update({
-        source: 'swapped_out',
-        swap_id: swap.swap_id,
-        related_worker_id: ownerId,
-        related_worker_name: owner.name,
-        related_worker_surname: owner.surname,
-      })
+      .delete()
       .eq('worker_id', requester_id)
       .eq('date', offered_date)
       .eq('shift_type', offered_type);

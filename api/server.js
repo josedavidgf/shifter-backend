@@ -56,7 +56,7 @@ app.use('/api/support', supportRoutes);
 app.use('/api/user-events',userEventsRoutes);
 app.use('/api/flags', featureFlagRoutes);
 app.use('/api/messages', messagesRoutes);
-app.use('/push', pushRoutes);
+app.use('/api/push', pushRoutes);
 
 
 // Iniciar servidor

@@ -5,6 +5,7 @@ const { translateShiftType } = require('./translateService');
 function swapProposed({ from, to, shift_type, swap_id }) {
     const friendlyDate = formatFriendlyDate(to || '');
     const translatedType = translateShiftType(shift_type || '');
+    console.log('swap_id',swap_id);
 
     return {
         title: 'Nuevo intercambio propuesto',
@@ -33,6 +34,7 @@ function swapAccepted({ by, shiftDate, shiftType, swapId }) {
     const friendlyDate = formatFriendlyDate(shiftDate || '');
     const translatedType = translateShiftType(shiftType || '');
     const byFullName = `${by.name} ${by.surname}` || 'Un colega';
+    console.log('swapId - notifications',swapId);
 
     return {
         title: 'Intercambio aceptado',

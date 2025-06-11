@@ -8,11 +8,12 @@ const {
     getSwapsByRequesterId,
     getSwapsByShiftIdService,
     getSwapsAcceptedForMyShifts,
+    getSwapsAcceptedForMyShiftsForDate,
 } = require('../services/swapService');
 const { sendSwapProposalEmail } = require('../services/emailService');
 const { createUserEvent } = require('../services/userEventsService');
 const { translateShiftType } = require('../utils/translateService'); // ✅ Import antes de usar
-const pushService = require('../services/pushService');
+const {sendSwapProposedNotification} = require('../services/pushService');
 
 async function handleCreateSwap(req, res) {
     try {
@@ -77,7 +78,7 @@ async function handleCreateSwap(req, res) {
                 }
             );
             // 🟣 Enviar notificación push si es posible
-            await pushService.sendSwapProposedNotification({
+            await sendSwapProposedNotification({
                 userId: shift.owner_user_id,
                 from: requester_full_name,
                 shiftDate: shift.date,
@@ -136,6 +137,23 @@ async function handleGetAcceptedSwaps(req, res) {
         if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
 
         const swaps = await getSwapsAcceptedForMyShifts(worker.worker_id);
+        //console.log('swaps',swaps);
+        res.json({ success: true, data: swaps });
+    } catch (err) {
+        console.error('❌ Error al cargar swaps recibidos:', err.message);
+        res.status(500).json({ success: false, message: err.message });
+    }
+}
+
+async function handleGetAcceptedSwapsForDate(req, res) {
+    try {
+        const userId = req.user.sub;
+        const worker = await getWorkerByUserId(userId);
+        if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
+
+        const { dateStr } = req.params;
+        const swaps = await getSwapsAcceptedForMyShiftsForDate(worker.worker_id, dateStr);
+        console.log('🟢 Swaps aceptados para la fecha:', dateStr, swaps);
         //console.log('swaps',swaps);
         res.json({ success: true, data: swaps });
     } catch (err) {
@@ -222,4 +240,5 @@ module.exports = {
     handleGetSwapsById,
     handleGetSwapsByShiftId,
     handleGetAcceptedSwaps,
+    handleGetAcceptedSwapsForDate,
 };

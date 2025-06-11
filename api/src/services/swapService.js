@@ -6,7 +6,8 @@ const { getWorkerById } = require('./workerService');
 const { getMySwapPreferences, deleteSwapPreference } = require('./swapPreferencesService');
 const { applySwapToMonthlySchedule } = require('./swapScheduleService');
 const { createUserEvent } = require('./userEventsService');
-const pushService = require('./pushService');
+const {sendSwapRespondedNotification} = require('./pushService');
+const e = require('express');
 
 
 // TODO: Verificar si esta función sigue siendo necesaria después del MVP.
@@ -137,6 +138,83 @@ async function getSwapsAcceptedForMyShifts(workerId) {
   return [...(swapsAsOwner || []), ...(swapsAsRequester || [])];
 }
 
+async function getSwapsAcceptedForMyShiftsForDate(workerId, dateStr) {
+  // 1. Buscar swaps donde worker es OWNER de turno (como tienes ahora)
+  const { data: myShifts, error: errShifts } = await supabase
+    .from('shifts')
+    .select('shift_id')
+    .eq('worker_id', workerId)
+    .eq('date', dateStr);
+  if (errShifts) throw new Error(errShifts.message);
+
+  const shiftIds = myShifts.map(s => s.shift_id);
+
+  const { data: swapsAsOwner, error: errOwner } = await supabase
+    .from('swaps')
+    .select(`
+      *,
+      shift:shift_id (
+        shift_id,
+        date,
+        shift_type,
+        shift_label,
+        shift_comments,
+        worker:worker_id (
+          worker_id,
+          name,
+          surname,
+          mobile_country_code,
+          mobile_phone
+        )
+      ),
+      requester:requester_id (
+        worker_id,
+        name,
+        surname,
+        mobile_country_code,
+        mobile_phone
+      )
+    `)
+    .eq('status', 'accepted')
+    .in('shift_id', shiftIds);
+  if (errOwner) throw new Error(errOwner.message);
+
+  // 2. Buscar swaps donde worker es REQUESTER
+  const { data: swapsAsRequester, error: errRequester } = await supabase
+    .from('swaps')
+    .select(`
+      *,
+      shift:shift_id (
+        shift_id,
+        date,
+        shift_type,
+        shift_label,
+        shift_comments,
+        worker:worker_id (
+          worker_id,
+          name,
+          surname,
+          mobile_country_code,
+          mobile_phone
+        )
+      ),
+      requester:requester_id (
+        worker_id,
+        name,
+        surname,
+        mobile_country_code,
+        mobile_phone
+      )
+    `)
+    .eq('status', 'accepted')
+    .eq('offered_date', dateStr)
+    .eq('requester_id', workerId);
+  if (errRequester) throw new Error(errRequester.message);
+
+  // 3. Combinar ambos resultados
+  return [...(swapsAsOwner || []), ...(swapsAsRequester || [])];
+}
+
 
 async function cancelSwap(swapId, requesterId) {
   const { data, error } = await supabase
@@ -186,7 +264,7 @@ async function respondToSwap(swapId, status, ownerId) {
       shift,
       updatedSwap
     );
-    await pushService.sendSwapRespondedNotification({
+    await sendSwapRespondedNotification({
       userId: requester.user_id,
       type: 'rejected',
       by: { name: shift.owner_name, surname: shift.owner_surname },
@@ -261,7 +339,7 @@ async function respondToSwap(swapId, status, ownerId) {
         shift,
         swap
       );
-      await pushService.sendSwapRespondedNotification({
+      await sendSwapRespondedNotification({
         userId: requester.user_id,
         type: 'rejected',
         by: { name: shift.owner_name, surname: shift.owner_surname },
@@ -288,13 +366,14 @@ async function respondToSwap(swapId, status, ownerId) {
       shift,
       updatedSwap
     );
-    await pushService.sendSwapRespondedNotification({
+    console.log ('updatedSwap',updatedSwap);
+    await sendSwapRespondedNotification({
       userId: requester.user_id,
       type: 'accepted',
       by: { name: shift.owner_name, surname: shift.owner_surname },
       shiftDate: shift.date,
       shiftType: shift.shift_type,
-      swapId: updatedSwap.id,
+      swapId: updatedSwap.swap_id,
     });
     await createUserEvent(updatedSwap.requester_id, 'swap_accepted', {
       shift_date: fullShift.date,
@@ -515,7 +594,8 @@ async function createSwapWithMatching(data) {
       shift,
       updatedSwap
     );
-    await pushService.sendSwapRespondedNotification({
+    console.log('updatedSwap',updatedSwap);
+    await sendSwapRespondedNotification({
       userId: requester.user_id,
       type: 'accepted',
       by: { name: shift.owner_name, surname: shift.owner_surname },
@@ -536,7 +616,7 @@ async function createSwapWithMatching(data) {
       shift,
       updatedSwap
     );
-    await pushService.sendSwapRespondedNotification({
+    await sendSwapRespondedNotification({
       userId: owner.user_id,
       type: 'accepted',
       by: { name: requester.requester_name, surname: requester.requester_surname },
@@ -602,7 +682,7 @@ async function createSwapWithMatching(data) {
         shift,
         swap
       );
-      await pushService.sendSwapRespondedNotification({
+      await sendSwapRespondedNotification({
         userId: requester.user_id,
         type: 'rejected',
         by: { name: shift.owner_name, surname: shift.owner_surname },
@@ -636,5 +716,6 @@ module.exports = {
   cancelSwap,
   getSwapByIdService,
   getSwapsByShiftIdService,
-  getSwapsAcceptedForMyShifts
+  getSwapsAcceptedForMyShifts,
+  getSwapsAcceptedForMyShiftsForDate
 };
