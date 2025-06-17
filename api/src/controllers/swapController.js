@@ -153,7 +153,6 @@ async function handleGetAcceptedSwapsForDate(req, res) {
 
         const { dateStr } = req.params;
         const swaps = await getSwapsAcceptedForMyShiftsForDate(worker.worker_id, dateStr);
-        console.log('🟢 Swaps aceptados para la fecha:', dateStr, swaps);
         //console.log('swaps',swaps);
         res.json({ success: true, data: swaps });
     } catch (err) {
