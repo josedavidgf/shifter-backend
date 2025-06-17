@@ -77,6 +77,13 @@ async function sendSwapRespondedNotification({ userId, type, by, shiftDate, shif
     console.log('User ID:', userId);
     await sendPushToUser(userId, payload);
 }
+async function sendSwapCancelledNotification({ userId, by, shiftDate, shiftType, swapId }) {
+    const shouldSend = await shouldSendSwapRespondedPushNotification(userId);
+    if (!shouldSend) return;
+
+    const payload = swapCancelled({ by, shiftDate, shiftType, swapId });
+    await sendPushToUser(userId, payload);
+}
 
 async function sendSwapProposedNotification({ userId, from, shiftDate, shiftType, swapId }) {
     const shouldSend = await shouldSendSwapPushNotification(userId);
@@ -94,4 +101,5 @@ module.exports = {
     notifyEligibleWorkersOfNewShift,
     sendSwapRespondedNotification,
     sendSwapProposedNotification,
+    sendSwapCancelledNotification
 };

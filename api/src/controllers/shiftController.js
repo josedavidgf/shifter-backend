@@ -199,7 +199,8 @@ async function handleGetHospitalShifts(req, res) {
         const shifts = await getHospitalShifts(
             worker.workers_hospitals?.[0]?.hospital_id,
             worker.worker_id,
-            worker.worker_type_id
+            worker.worker_type_id,
+            worker.workers_specialities?.[0]?.speciality_id
         );
         res.json({ success: true, data: shifts });
     } catch (err) {

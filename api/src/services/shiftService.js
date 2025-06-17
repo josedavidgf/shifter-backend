@@ -105,7 +105,7 @@ async function removeShift(shiftId, userId) {
     return data;
 }
 
-async function getHospitalShifts(hospitalId, excludeWorkerId, workerTypeId, limit, offset) {
+async function getHospitalShifts(hospitalId, excludeWorkerId, workerTypeId, specialityId) {
     // 1. Obtener los turnos publicados
     const { data, error } = await supabase
         .from('shifts')
@@ -119,6 +119,7 @@ async function getHospitalShifts(hospitalId, excludeWorkerId, workerTypeId, limi
         )
       `)
         .eq('hospital_id', hospitalId)
+        .eq('speciality_id', specialityId)
         .eq('state', 'published')
         //.neq('worker_id', excludeWorkerId) // aquí estamos excluyendo tus turnos
         .order('date', { ascending: true }) // más recientes primero
