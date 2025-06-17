@@ -43,42 +43,26 @@ const createWorker = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Usuario no autenticado' });
     }
 
-    //console.log('👤 Usuario autenticado:', req.user);
-    //console.log('👤 Datos del trabajador:', req.body);
-    const { workerTypeId } = req.body;
+    const { workerTypeId, verificated } = req.body;
+
+    console.log('🧪 Datos recibidos para crear trabajador:', {
+      workerTypeId,
+      verificated,
+      userId: req.user.sub
+    });
+
     // Validación básica
     if (!workerTypeId) {
       console.error('❌ Campos obligatorios faltantes:', { workerTypeId });
       return res.status(400).json({ success: false, message: 'Faltan datos obligatorios' });
     }
-    //console.log('🧪 Guardando trabajador:', workerTypeId);
-    // Inspección de entrada
-    //console.log('📨 Body recibido:', { name, surname, workerType });
-    //console.log('🔐 Usuario autenticado:', req.user);
 
-    // Preparación de datos
-    /* const newWorker = {
-      user_id: req.user.sub,
-      email: req.user.email,
-      state: 'active',
-      worker_type_id: workerTypeId,
-      onboarding_completed: false
-    };
- */
-    //console.log('🧪 Datos del trabajador:', newWorker);
-
-    //console.log('📤 Insertando en Supabase:', newWorker);
-
-    /* const { data, error } = await supabase
-      .from('workers')
-      .insert(newWorker)
-      .select();
- */
     const { data, error } = await supabase
       .from('workers')
       .update({
         worker_type_id: workerTypeId,
-        state: 'active'
+        state: 'active',
+        verificated: verificated,
       })
       .eq('user_id', req.user.sub)
       .select();

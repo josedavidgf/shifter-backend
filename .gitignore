@@ -26,3 +26,6 @@ railway.json
 
 # Mac and Linux trash
 .Trashes
+
+
+.railway/

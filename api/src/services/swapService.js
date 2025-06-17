@@ -6,7 +6,7 @@ const { getWorkerById } = require('./workerService');
 const { getMySwapPreferences, deleteSwapPreference } = require('./swapPreferencesService');
 const { applySwapToMonthlySchedule } = require('./swapScheduleService');
 const { createUserEvent } = require('./userEventsService');
-const {sendSwapRespondedNotification} = require('./pushService');
+const {sendSwapRespondedNotification, sendSwapCancelledNotification} = require('./pushService');
 const e = require('express');
 
 
@@ -216,17 +216,43 @@ async function getSwapsAcceptedForMyShiftsForDate(workerId, dateStr) {
 }
 
 
+
 async function cancelSwap(swapId, requesterId) {
-  const { data, error } = await supabase
+  // 1. Obtener swap original para comprobar estado y datos
+  const { data: previous, error: fetchError } = await supabase
+    .from('swaps')
+    .select('status, shift_id, swap_id, requester_id')
+    .eq('swap_id', swapId)
+    .eq('requester_id', requesterId)
+    .single();
+  if (fetchError) throw new Error(fetchError.message);
+
+  // 2. Actualizar estado a cancelado
+  const { data: updated, error: updateError } = await supabase
     .from('swaps')
     .update({ status: 'cancelled' })
     .eq('swap_id', swapId)
     .eq('requester_id', requesterId)
     .select()
     .single();
+  if (updateError) throw new Error(updateError.message);
 
-  if (error) throw new Error(error.message);
-  return data;
+  // 3. Si era "proposed", notificar al owner
+  if (previous.status === 'proposed') {
+    const shift = await getShiftWithOwnerEmail(previous.shift_id);
+    const owner = await getWorkerById(shift.worker_id);
+    const requester = await getWorkerById(previous.requester_id);
+
+    await sendSwapCancelledNotification({
+      userId: owner.user_id,
+      by: { name: requester.name, surname: requester.surname },
+      shiftDate: shift.date,
+      shiftType: shift.shift_type,
+      swapId: previous.swap_id,
+    });
+  }
+
+  return updated;
 }
 
 async function respondToSwap(swapId, status, ownerId) {

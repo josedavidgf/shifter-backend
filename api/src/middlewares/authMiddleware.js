@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 
 const protectRoute = async (req, res, next) => {
-    console.log('🔒 Middleware de autenticación activado');
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(' ')[1]; // 👈 asegúrate de definirlo antes de loguear
 

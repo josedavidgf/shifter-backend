@@ -63,6 +63,22 @@ function swapRejected({ by, shiftDate, shiftType, swapId }) {
     };
 }
 
+function swapCancelled({ by, shiftDate, shiftType, swapId }) {
+    const friendlyDate = formatFriendlyDate(shiftDate || '');
+    const translatedType = translateShiftType(shiftType || '');
+    const byFullName = `${by.name} ${by.surname}` || 'Un colega';
+
+    return {
+        title: 'Intercambio cancelado',
+        body: `${byFullName} canceló tu intercambio del ${friendlyDate} ${translatedType}.`,
+        data: {
+            route: 'SwapDetails',
+            params: { swapId },
+            type: 'swap_cancelled',
+        },
+    };
+}
+
 function shiftPublishedWithReturn({ publisher, shiftType, shiftDate, shiftId }) {
 
     const friendlyDate = formatFriendlyDate(shiftDate || '');
@@ -107,5 +123,5 @@ module.exports = {
     shiftReminder,
     shiftPublishedWithReturn,
     shiftPublishedNoReturn,
-
+    swapCancelled,
 };
