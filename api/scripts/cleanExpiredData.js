@@ -1,5 +1,6 @@
 require('dotenv').config();
 const supabaseAdmin = require('../src/config/supabaseAdmin');
+const { cancelSwapAutomatically } = require('../src/services/swapService');
 
 async function expireOldShifts() {
   const today = new Date().toISOString().split('T')[0];
@@ -34,10 +35,32 @@ async function expireOldSwapPreferences() {
   console.log(`🧹 Borradas ${ids.length} swapPreferences antiguas`);
 }
 
+async function cancelExpiredProposedSwaps() {
+  const today = new Date().toISOString().split('T')[0];
+  const { data, error } = await supabaseAdmin
+    .from('swaps')
+    .select('swap_id')
+    .eq('status', 'proposed')
+    .lt('offered_date', today); // o usa offer_date si la tienes
+
+  if (error) throw new Error(error.message);
+
+  for (const swap of data) {
+    try {
+      await cancelSwapAutomatically(swap.swap_id);
+    } catch (err) {
+      console.error(`❌ Error cancelando swap ${swap.swap_id}:`, err.message);
+    }
+  }
+
+  console.log(`🚫 Cancelados ${data.length} swaps expirados`);
+}
+
 (async () => {
   try {
     await expireOldShifts();
     await expireOldSwapPreferences();
+    await cancelExpiredProposedSwaps();
     console.log(`🕐 Limpieza ejecutada a: ${new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })}`);
     process.exit(0);
   } catch (err) {
