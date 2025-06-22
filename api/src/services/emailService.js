@@ -190,28 +190,28 @@ async function sendSwapRejectedEmail(userId, toEmail, originalShift, proposedShi
 }
 
 
-async function sendReminderEmail(toEmail, shift, user) {
+async function sendMultiReminderEmail(toEmail, shifts, user) {
   const allow = await shouldSendReminderEmail(user.id);
   if (!allow) {
     console.log(`📭 Recordatorio no enviado a ${toEmail}: preferencias desactivadas.`);
     return;
   }
 
+  const listItems = shifts.map(s => 
+    `<li><strong>${s.date}</strong>: ${translateShiftType(s.shift_type)}</li>`
+  ).join('');
+
   const mailOptions = {
     from: `"Tanda" <${process.env.SMTP_USER}>`,
     to: toEmail,
-    subject: `📆 Recordatorio: tienes turno el ${shift.date} de ${translateShiftType(shift.shift_type)}`,
+    subject: `📆 Recordatorio: tienes ${shifts.length} turno(s) mañana`,
     html: `
       <p>Hola ${user.name || ''},</p>
-      <p>Este es un recordatorio de que <strong>mañana</strong> tienes un turno programado:</p>
-      <ul>
-        <li><strong>Fecha:</strong> ${shift.date}</li>
-        <li><strong>Turno:</strong> ${translateShiftType(shift.shift_type)}</li>
-      </ul>
+      <p>Este es un recordatorio de que <strong>mañana</strong> tienes los siguientes turnos programados:</p>
+      <ul>${listItems}</ul>
       <p>¡Gracias por tu compromiso!</p>
       <br>
       <p>Gracias por usar Tanda para organizar vuestros turnos con más facilidad.</p>
-
       <p>✉️ Este es un mensaje automático de Tanda. No respondas a este correo.</p>
       <p>El equipo de Tanda</p>
     `
@@ -219,6 +219,7 @@ async function sendReminderEmail(toEmail, shift, user) {
 
   await transporter.sendMail(mailOptions);
 }
+
 
 async function sendSupportAndConfirmationEmail(worker, title, description) {
 
@@ -267,6 +268,6 @@ module.exports = {
   sendSwapAcceptedEmail,
   sendSwapAcceptedEmailOwner,
   sendSwapRejectedEmail,
-  sendReminderEmail,
+  sendMultiReminderEmail,
   sendSupportAndConfirmationEmail
 };

@@ -5,7 +5,7 @@ const { translateShiftType } = require('./translateService');
 function swapProposed({ from, to, shift_type, swap_id }) {
     const friendlyDate = formatFriendlyDate(to || '');
     const translatedType = translateShiftType(shift_type || '');
-    console.log('swap_id',swap_id);
+    console.log('swap_id', swap_id);
 
     return {
         title: 'Nuevo intercambio propuesto',
@@ -18,10 +18,20 @@ function swapProposed({ from, to, shift_type, swap_id }) {
     };
 }
 
-function shiftReminder({ shiftType, date }) {
+function shiftReminder({ shifts }) {
+    const translatedList = shifts.map(s => translateShiftType(s.shift_type));
+    const listText = translatedList.join(' y ');
+    const plural = shifts.length > 1;
+    console.log('shifts', shifts);
+    console.log('listText', listText);
+    console.log('plural', plural);
+
+
     return {
-        title: `Turno programado: ${capitalize(shiftType)}`,
-        body: `Recuerda que mañana tienes un turno de ${shiftType}.`,
+        title: plural ? 'Recordatorio de turnos' : 'Recordatorio de turno',
+        body: plural
+            ? `Mañana tienes ${shifts.length} turnos: ${listText}.`
+            : `Recuerda que mañana tienes un turno de ${listText}.`,
         data: {
             route: 'Calendar',
             params: {},
@@ -30,11 +40,12 @@ function shiftReminder({ shiftType, date }) {
     };
 }
 
+
 function swapAccepted({ by, shiftDate, shiftType, swapId }) {
     const friendlyDate = formatFriendlyDate(shiftDate || '');
     const translatedType = translateShiftType(shiftType || '');
     const byFullName = `${by.name} ${by.surname}` || 'Un colega';
-    console.log('swapId - notifications',swapId);
+    console.log('swapId - notifications', swapId);
 
     return {
         title: 'Intercambio aceptado',

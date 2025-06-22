@@ -1,7 +1,7 @@
 const supabase = require('../config/supabase');
 const axios = require('axios');
 const { sendPushToUser } = require('./pushSenderService');
-
+const { shouldSendDailyReminderPushNotification } = require('./userPreferencesService');
 
 const { getUsersForPublishedShift } = require('./workerService');
 const {
@@ -10,7 +10,14 @@ const {
     shouldSendSwapPushNotification
 } = require('./userPreferencesService');
 const { } = require('./userPreferencesService');
-const { swapAccepted, swapRejected, swapProposed, shiftPublishedWithReturn, shiftPublishedNoReturn } = require('../utils/notifications');
+const {
+    swapAccepted,
+    swapRejected,
+    swapProposed,
+    shiftPublishedWithReturn,
+    shiftPublishedNoReturn,
+    shiftReminder,
+} = require('../utils/notifications');
 
 const notifications = require('../utils/notifications');
 
@@ -97,9 +104,22 @@ async function sendSwapProposedNotification({ userId, from, shiftDate, shiftType
     await sendPushToUser(userId, payload);
 }
 
+async function sendDailyReminderPush(userId, shifts = []) {
+    const allow = await shouldSendDailyReminderPushNotification(userId);
+    if (!allow) return;
+
+    if (!shifts.length) return;
+
+    const payload = shiftReminder({ shifts });
+    console.log('Sending daily reminder push:', payload);
+    await sendPushToUser(userId, payload);
+    console.log(`📅 Enviado recordatorio diario a ${userId} con ${shifts.length} turnos.`);
+}
+
 module.exports = {
     notifyEligibleWorkersOfNewShift,
     sendSwapRespondedNotification,
     sendSwapProposedNotification,
-    sendSwapCancelledNotification
+    sendSwapCancelledNotification,
+    sendDailyReminderPush
 };
