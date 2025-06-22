@@ -1,0 +1,21 @@
+// scripts/toggleContentCard.js
+require('dotenv').config();
+const supabase = require('../config/supabaseAdmin');
+
+async function toggleCard(cardId, active) {
+  const { error } = await supabase
+    .from('content_cards')
+    .update({ is_active: active })
+    .eq('id', cardId);
+
+  if (error) {
+    console.error('❌ Error actualizando el estado:', error.message);
+    process.exit(1);
+  }
+
+  console.log(`✅ Tarjeta ${active ? 'activada' : 'desactivada'} correctamente`);
+  process.exit(0);
+}
+
+// USO EJEMPLO:
+// toggleCard('card-uuid-aqui', false);

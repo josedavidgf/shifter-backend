@@ -177,11 +177,43 @@ async function getWorkerStats(workerId) {
   };
 }
 
+async function getCoworkersCount({ hospitalId, workerTypeId, specialityId }) {
+  // 1. Obtener los worker_id que están en ese hospital
+  const { data: hospitalWorkers, error: error1 } = await supabaseAdmin
+    .from('workers_hospitals')
+    .select('worker_id')
+    .eq('hospital_id', hospitalId)
+    .eq('state', 'active');
+
+  if (error1 || !hospitalWorkers) return 0;
+
+  const workerIds = hospitalWorkers.map(w => w.worker_id);
+
+  // 2. Filtrar los workers que coincidan en type y speciality
+  const { count, error: error2 } = await supabaseAdmin
+    .from('workers')
+    .select('*', { count: 'exact', head: true })
+    .in('worker_id', workerIds)
+    .eq('worker_type_id', workerTypeId)
+    .in('worker_id',
+      (await supabaseAdmin
+        .from('workers_specialities')
+        .select('worker_id')
+        .eq('speciality_id', specialityId)).data?.map(w => w.worker_id) || []
+    );
+
+  if (error2) return 0;
+
+  return count || 0;
+}
+
+
 
 module.exports = {
   getAllWorkers,
   getWorkerById,
   createWorker,
+  getCoworkersCount,
   updateWorker,
   deleteWorker,
   getWorkerByUserId,

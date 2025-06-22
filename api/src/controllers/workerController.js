@@ -415,10 +415,32 @@ const updateWorkerSpeciality = async (req, res) => {
 const completeOnboarding = async (req, res) => {
   try {
     const userId = req.user.sub;
+    const now = new Date();
+    const twoWeeksFromNow = new Date();
+    twoWeeksFromNow.setDate(now.getDate() + 14);
+
+    const worker = await workerService.getWorkerByUserId(userId);
+    if (!worker) {
+      return res.status(404).json({ success: false, message: 'Worker not found' });
+    }
+
+    await supabaseAdmin.from('content_cards').insert({
+      worker_id: worker.worker_id,
+      is_active: true,
+      is_dynamic: true,
+      title: 'Bienvenido a Tanda',
+      description: 'Ya sois {{numCoworkers}} {{workerTypeName}} en el servicio de {{specialityName}} en {{hospitalName}}.',
+      icon_name: 'UsersThree',
+      start_date: now.toISOString(),
+      end_date: twoWeeksFromNow.toISOString(),
+    });
 
     const { error } = await supabase
       .from('workers')
-      .update({ onboarding_completed: true })
+      .update({
+        onboarding_completed: true,
+        activated_at: now.toISOString(),
+      })
       .eq('user_id', userId);
 
     if (error) throw new Error(error.message);

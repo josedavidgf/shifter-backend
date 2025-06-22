@@ -18,8 +18,6 @@ const validateAccessCode = async (req, res) => {
 const handleGetAccessCode = async (req, res) => {
   const { hospitalId, workerTypeId } = req.query;
 
-  console.log('Received request to get access code for hospitalId:', hospitalId, 'and workerTypeId:', workerTypeId);
-
   if (!hospitalId || !workerTypeId) {
     return res.status(400).json({ error: 'Missing parameters' });
   }

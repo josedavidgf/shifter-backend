@@ -13,7 +13,6 @@ async function getAccessCode(code) {
 
 async function getAccessCodeByHospitalAndType(hospitalId, workerTypeId) {
 
-  console.log('Fetching access code for hospitalId:', hospitalId, 'and workerTypeId:', workerTypeId);
   const { data, error } = await supabase
     .from('access_codes')
     .select('code')
