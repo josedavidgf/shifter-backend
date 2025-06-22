@@ -21,6 +21,7 @@ const userEventsRoutes = require('./src/routes/userEventsRoutes');
 const featureFlagRoutes = require('./src/routes/featureFlagRoutes');
 const messagesRoutes = require('./src/routes/messagesRoutes');
 const pushRoutes = require('./src/routes/pushRoutes');
+const contentCardRoutes = require('./src/routes/contentCardRoutes');
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
 
@@ -57,6 +58,7 @@ app.use('/api/user-events',userEventsRoutes);
 app.use('/api/flags', featureFlagRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/push', pushRoutes);
+app.use('/api/content-cards', contentCardRoutes);
 
 
 // Iniciar servidor
