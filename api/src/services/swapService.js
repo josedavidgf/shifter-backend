@@ -733,6 +733,38 @@ async function createSwapWithMatching(data) {
   return swap;
 }
 
+async function cancelSwapAutomatically(swapId) {
+  const { data: swap, error: fetchError } = await supabase
+    .from('swaps')
+    .select('status, shift_id, swap_id, requester_id')
+    .eq('swap_id', swapId)
+    .single();
+
+  if (fetchError) throw new Error(fetchError.message);
+  if (!swap || swap.status !== 'proposed') return; // nada que hacer
+
+  // Cancelar
+  const { error: updateError } = await supabase
+    .from('swaps')
+    .update({ status: 'cancelled' })
+    .eq('swap_id', swap.swap_id);
+
+  if (updateError) throw new Error(updateError.message);
+
+  const shift = await getShiftWithOwnerEmail(swap.shift_id);
+  const owner = await getWorkerById(shift.worker_id);
+  const requester = await getWorkerById(swap.requester_id);
+
+  await sendSwapCancelledNotification({
+    userId: owner.user_id,
+    by: { name: requester.name, surname: requester.surname },
+    shiftDate: shift.date,
+    shiftType: shift.shift_type,
+    swapId: swap.swap_id,
+  });
+}
+
+
 module.exports = {
   createSwapWithMatching,
   createSwap,
@@ -743,5 +775,6 @@ module.exports = {
   getSwapByIdService,
   getSwapsByShiftIdService,
   getSwapsAcceptedForMyShifts,
-  getSwapsAcceptedForMyShiftsForDate
+  getSwapsAcceptedForMyShiftsForDate,
+  cancelSwapAutomatically,
 };
