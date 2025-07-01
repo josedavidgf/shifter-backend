@@ -230,7 +230,10 @@ async function cancelSwap(swapId, requesterId) {
   // 2. Actualizar estado a cancelado
   const { data: updated, error: updateError } = await supabase
     .from('swaps')
-    .update({ status: 'cancelled' })
+    .update({ 
+      status: 'cancelled',
+      updated_at: new Date().toISOString()
+    })
     .eq('swap_id', swapId)
     .eq('requester_id', requesterId)
     .select()
@@ -267,7 +270,10 @@ async function respondToSwap(swapId, status, ownerId) {
 
   const { data: updatedSwap, error } = await supabase
     .from('swaps')
-    .update({ status })
+    .update({ 
+      status,
+      updated_at: new Date().toISOString()
+    })
     .eq('swap_id', swapId)
     .in('shift_id', shiftIds)
     .select()
@@ -309,7 +315,10 @@ async function respondToSwap(swapId, status, ownerId) {
 
     const { error: shiftError } = await supabase
       .from('shifts')
-      .update({ state: 'swapped' })
+      .update({ 
+        state: 'swapped',
+        updated_at: new Date().toISOString()
+      })
       .eq('shift_id', shiftId);
 
     if (shiftError) throw new Error('No se pudo actualizar el estado del turno');
@@ -328,7 +337,10 @@ async function respondToSwap(swapId, status, ownerId) {
       // Cancelar otros swaps que ofrecían lo mismo
       await supabase
         .from('swaps')
-        .update({ status: 'cancelled' })
+        .update({ 
+          status: 'cancelled',
+          updated_at: new Date().toISOString()
+        })
         .eq('requester_id', updatedSwap.requester_id)
         .eq('offered_date', updatedSwap.offered_date)
         .eq('offered_type', updatedSwap.offered_type)
@@ -348,7 +360,10 @@ async function respondToSwap(swapId, status, ownerId) {
 
     await supabase
       .from('swaps')
-      .update({ status: 'rejected' })
+      .update({ 
+        status: 'rejected',
+        updated_at: new Date().toISOString()
+      })
       .eq('shift_id', updatedSwap.shift_id)
       .neq('swap_id', updatedSwap.swap_id)
       .eq('status', 'proposed');
@@ -392,7 +407,6 @@ async function respondToSwap(swapId, status, ownerId) {
       shift,
       updatedSwap
     );
-    console.log ('updatedSwap',updatedSwap);
     await sendSwapRespondedNotification({
       userId: requester.user_id,
       type: 'accepted',
@@ -578,7 +592,10 @@ async function createSwapWithMatching(data) {
     // 4. Actualizar swap a 'accepted'
     const { data: updatedSwap, error: updateError } = await supabase
       .from('swaps')
-      .update({ status: 'accepted' })
+      .update({ 
+        status: 'accepted',
+        updated_at: new Date().toISOString()
+      })
       .eq('swap_id', swap.swap_id)
       .select()
       .single();
@@ -588,7 +605,10 @@ async function createSwapWithMatching(data) {
     // 5. Marcar turno original como intercambiado
     await supabaseAdmin
       .from('shifts')
-      .update({ state: 'swapped' })
+      .update({ 
+        state: 'swapped',
+        updated_at: new Date().toISOString()
+      })
       .eq('shift_id', shift_id);
 
     // 6. Eliminar preferencia cumplida
@@ -620,7 +640,6 @@ async function createSwapWithMatching(data) {
       shift,
       updatedSwap
     );
-    console.log('updatedSwap',updatedSwap);
     await sendSwapRespondedNotification({
       userId: requester.user_id,
       type: 'accepted',
@@ -671,7 +690,10 @@ async function createSwapWithMatching(data) {
     // 🔒 Cancelar otros swaps que usan el mismo turno ofrecido por el requester
     await supabaseAdmin
       .from('swaps')
-      .update({ status: 'cancelled' })
+      .update({ 
+        status: 'cancelled',
+        updated_at: new Date().toISOString()
+      })
       .eq('requester_id', updatedSwap.requester_id)
       .eq('offered_date', updatedSwap.offered_date)
       .eq('offered_type', updatedSwap.offered_type)
@@ -690,7 +712,10 @@ async function createSwapWithMatching(data) {
 
     await supabaseAdmin
       .from('swaps')
-      .update({ status: 'rejected' })
+      .update({ 
+        status: 'rejected',
+        updated_at: new Date().toISOString()
+      })
       .eq('shift_id', updatedSwap.shift_id)
       .neq('swap_id', updatedSwap.swap_id)
       .eq('status', 'proposed');
@@ -746,7 +771,10 @@ async function cancelSwapAutomatically(swapId) {
   // Cancelar
   const { error: updateError } = await supabase
     .from('swaps')
-    .update({ status: 'cancelled' })
+    .update({ 
+      status: 'cancelled',
+      updated_at: new Date().toISOString()
+    })
     .eq('swap_id', swap.swap_id);
 
   if (updateError) throw new Error(updateError.message);
@@ -764,6 +792,38 @@ async function cancelSwapAutomatically(swapId) {
   });
 }
 
+async function getSupervisedAcceptedSwaps({ hospital_id, worker_type_id, speciality_id }) {
+  // 1. Obtener los worker_id supervisados
+  const { data: hospitalWorkers, error: error1 } = await supabaseAdmin
+    .from('workers_hospitals')
+    .select('worker_id')
+    .eq('hospital_id', hospital_id)
+    .eq('state', 'active');
+  if (error1) throw new Error(error1.message);
+  const workerIds = hospitalWorkers.map(w => w.worker_id);
+
+  // 2. Filtrar por worker_type y speciality
+  const { data: specialityWorkers, error: error2 } = await supabaseAdmin
+    .from('workers_specialities')
+    .select('worker_id')
+    .eq('speciality_id', speciality_id);
+  if (error2) throw new Error(error2.message);
+  const filteredWorkerIds = workerIds.filter(id => specialityWorkers.some(w => w.worker_id === id));
+
+  // 3. Obtener swaps aceptados donde requester_id o shift.worker_id esté en filteredWorkerIds
+  const { data: swaps, error: error3 } = await supabaseAdmin
+    .from('swaps')
+    .select(`
+      *,
+      requester:requester_id (worker_id, name, surname),
+      shift:shift_id (shift_id, date, shift_type, worker:worker_id (worker_id, name, surname))
+    `)
+    .eq('status', 'accepted')
+    .or(`requester_id.in.(${filteredWorkerIds.join(',')}),shift_id.in.(${filteredWorkerIds.join(',')})`)
+    .order('updated_at', { ascending: false });
+  if (error3) throw new Error(error3.message);
+  return swaps;
+}
 
 module.exports = {
   createSwapWithMatching,
@@ -777,4 +837,5 @@ module.exports = {
   getSwapsAcceptedForMyShifts,
   getSwapsAcceptedForMyShiftsForDate,
   cancelSwapAutomatically,
+  getSupervisedAcceptedSwaps,
 };

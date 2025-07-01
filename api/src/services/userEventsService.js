@@ -18,7 +18,10 @@ async function getUserEvents(workerId) {
 async function markUserEventsAsSeen(workerId) {
   return await supabase
     .from("user_events")
-    .update({ seen: true })
+    .update({ 
+      seen: true,
+      updated_at: new Date().toISOString()
+    })
     .eq("worker_id", workerId)
     .eq("seen", false);
 }

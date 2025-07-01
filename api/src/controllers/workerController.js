@@ -278,13 +278,13 @@ const getFullWorkerProfile = async (req, res) => {
 
 const updateWorkerInfo = async (req, res) => {
   const userId = req.user?.sub;
-  const { name, surname, mobile_phone, mobile_country_code } = req.body;
+  const { name, surname, mobile_country_code, mobile_phone } = req.body;
 
   const updateData = {};
   if (name !== undefined) updateData.name = name;
   if (surname !== undefined) updateData.surname = surname;
-  if (mobile_phone !== undefined && mobile_phone.trim() !== '') updateData.mobile_phone = mobile_phone.trim();
-  if (mobile_country_code !== undefined && mobile_country_code.trim() !== '') updateData.mobile_country_code = mobile_country_code.trim();
+  if (mobile_country_code !== undefined) updateData.mobile_country_code = mobile_country_code;
+  if (mobile_phone !== undefined) updateData.mobile_phone = mobile_phone;
 
   const { data: worker } = await supabase
     .from('workers')
@@ -294,7 +294,10 @@ const updateWorkerInfo = async (req, res) => {
 
   const { error } = await supabase
     .from('workers')
-    .update(updateData)
+    .update({
+      ...updateData,
+      updated_at: new Date().toISOString()
+    })
     .eq('worker_id', worker.worker_id);
 
   if (error) return res.status(400).json({ success: false, message: error.message });
@@ -317,7 +320,10 @@ const updateWorkerType = async (req, res) => {
 
   const { error } = await supabase
     .from('workers')
-    .update(updateData)
+    .update({
+      ...updateData,
+      updated_at: new Date().toISOString()
+    })
     .eq('worker_id', worker.worker_id);
 
   if (error) return res.status(400).json({ success: false, message: error.message });
@@ -402,7 +408,10 @@ const updateWorkerSpeciality = async (req, res) => {
   // Actualizar solo los campos modificados
   const { error: updateError } = await supabase
     .from('workers_specialities')
-    .update(changes)
+    .update({
+      ...changes,
+      updated_at: new Date().toISOString()
+    })
     .eq('worker_id', worker.worker_id);
 
   if (updateError) {
@@ -440,6 +449,7 @@ const completeOnboarding = async (req, res) => {
       .update({
         onboarding_completed: true,
         activated_at: now.toISOString(),
+        updated_at: new Date().toISOString()
       })
       .eq('user_id', userId);
 
@@ -500,7 +510,55 @@ const initializeWorker = async (req, res) => {
   }
 };
 
+// Obtener los trabajadores supervisados por el usuario autenticado
+const getSupervisedWorkers = async (req, res) => {
+  try {
+    const userId = req.user.sub;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const sortBy = req.query.sortBy || 'name';
+    const order = req.query.order === 'desc' ? 'desc' : 'asc';
+    const search = req.query.search || '';
 
+
+    // Buscar los datos de supervisor
+    const supervisor = await workerService.getSupervisorByUserId(userId);
+    if (!supervisor) {
+      return res.status(403).json({ success: false, message: 'No eres supervisor o no tienes permisos.' });
+    }
+
+    const { hospital_id, worker_type_id, speciality_id } = supervisor;
+
+    const result = await workerService.getSupervisedWorkers({
+      hospital_id,
+      worker_type_id,
+      speciality_id,
+      page,
+      limit,
+      sortBy,
+      order,
+      search
+    });
+
+    res.json({ success: true, ...result });
+  } catch (err) {
+    console.error('❌ Error al obtener workers supervisados:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Obtener datos del supervisor por user_id
+const getSupervisorByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    if (!userId) return res.status(400).json({ error: 'userId requerido' });
+    const supervisor = await workerService.getSupervisorByUserId(userId);
+    if (!supervisor) return res.status(404).json({ error: 'Supervisor no encontrado' });
+    res.json(supervisor);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
 module.exports = {
   getAllWorkers,
@@ -519,5 +577,7 @@ module.exports = {
   handleGetWorkerStats,
   completeOnboarding,
   initializeWorker,
-  updateWorkerType
+  updateWorkerType,
+  getSupervisedWorkers,
+  getSupervisorByUserId,
 };

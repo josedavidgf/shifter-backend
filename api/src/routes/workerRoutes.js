@@ -16,7 +16,9 @@ const {
     handleGetWorkerStats,
     completeOnboarding,
     initializeWorker,
-    updateWorkerType
+    updateWorkerType,
+    getSupervisedWorkers,
+    getSupervisorByUserId
 } = require('../controllers/workerController');
 
 const protectRoute = require('../middlewares/authMiddleware');
@@ -33,6 +35,10 @@ router.put('/me/speciality', protectRoute, updateWorkerSpeciality);
 router.put('/me/type', protectRoute, updateWorkerType);
 
 router.get('/', getAllWorkers);
+router.get('/supervised', protectRoute, getSupervisedWorkers);
+router.get('/supervisor/:userId', getSupervisorByUserId);
+
+
 router.get('/:id', getWorkerById);
 router.post('/', protectRoute,createWorker);
 router.put('/:id', updateWorker);
@@ -42,8 +48,6 @@ router.post('/hospitals', protectRoute, createWorkerHospital);
 router.post('/specialities', protectRoute, createWorkerSpeciality);
 
 router.patch('/complete-onboarding', protectRoute, completeOnboarding);
-
-
 
 
 module.exports = router;

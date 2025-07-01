@@ -14,6 +14,8 @@ const { sendSwapProposalEmail } = require('../services/emailService');
 const { createUserEvent } = require('../services/userEventsService');
 const { translateShiftType } = require('../utils/translateService'); // ✅ Import antes de usar
 const {sendSwapProposedNotification} = require('../services/pushService');
+const workerService = require('../services/workerService');
+const swapService = require('../services/swapService');
 
 async function handleCreateSwap(req, res) {
     try {
@@ -230,6 +232,24 @@ async function handleGetSwapsByShiftId(req, res) {
     }
 }
 
+const getSupervisedAcceptedSwaps = async (req, res) => {
+  try {
+    const userId = req.user.sub;
+    // Obtener los datos del supervisor
+    const supervisor = await workerService.getSupervisorByUserId(userId);
+    if (!supervisor) {
+      return res.status(403).json({ success: false, message: 'No eres supervisor o no tienes permisos.' });
+    }
+    const { hospital_id, worker_type_id, speciality_id } = supervisor;
+    // Obtener los swaps aceptados de los workers supervisados
+    const swaps = await swapService.getSupervisedAcceptedSwaps({ hospital_id, worker_type_id, speciality_id });
+    res.json({ success: true, data: swaps });
+  } catch (err) {
+    console.error('❌ Error al obtener swaps aceptados supervisados:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 module.exports = {
     handleCreateSwap,
     handleGetReceivedSwaps,
@@ -240,4 +260,5 @@ module.exports = {
     handleGetSwapsByShiftId,
     handleGetAcceptedSwaps,
     handleGetAcceptedSwapsForDate,
+    getSupervisedAcceptedSwaps,
 };

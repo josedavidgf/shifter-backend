@@ -77,7 +77,10 @@ async function getWorkerByUserId(userId) {
 async function updateWorker(workerId, workerData) {
   const { data, error } = await supabase
     .from('workers')
-    .update(workerData)
+    .update({
+      ...workerData,
+      updated_at: new Date().toISOString()
+    })
     .eq('worker_id', workerId)
     .select('*');
   if (error) throw new Error(error.message);
@@ -88,7 +91,10 @@ async function updateWorker(workerId, workerData) {
 async function deleteWorker(workerId) {
   const { data, error } = await supabase
     .from('workers')
-    .update({ state: 'removed' })
+    .update({ 
+      state: 'removed',
+      updated_at: new Date().toISOString()
+    })
     .eq('worker_id', workerId)
     .select('*');
   if (error) throw new Error(error.message);
@@ -207,7 +213,81 @@ async function getCoworkersCount({ hospitalId, workerTypeId, specialityId }) {
   return count || 0;
 }
 
+// Obtener datos del supervisor por user_id
+async function getSupervisorByUserId(userId) {
+  const { data, error } = await supabaseAdmin
+    .from('supervisors')
+    .select('hospital_id, worker_type_id, speciality_id')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data;
+}
 
+// Obtener workers supervisados con filtros, búsqueda, orden y paginación
+async function getSupervisedWorkers({ hospital_id, worker_type_id, speciality_id, page, limit, sortBy, order, search }) {
+  // 1. Obtener los worker_id que están en ese hospital y cumplen los filtros
+  let query = supabaseAdmin
+    .from('workers')
+    .select('worker_id, name, surname, state', { count: 'exact' })
+    .eq('worker_type_id', worker_type_id)
+    .eq('state', 'active');
+
+  // Filtrar por hospital
+  if (hospital_id) {
+    // Obtener los worker_id de ese hospital
+    const { data: hospitalWorkers, error: error1 } = await supabaseAdmin
+      .from('workers_hospitals')
+      .select('worker_id')
+      .eq('hospital_id', hospital_id)
+      .eq('state', 'active');
+    if (error1) throw new Error(error1.message);
+    const workerIds = hospitalWorkers.map(w => w.worker_id);
+    query = query.in('worker_id', workerIds);
+  }
+
+  // Filtrar por speciality
+  if (speciality_id) {
+    // Obtener los worker_id de esa especialidad
+    const { data: specialityWorkers, error: error2 } = await supabaseAdmin
+      .from('workers_specialities')
+      .select('worker_id')
+      .eq('speciality_id', speciality_id);
+    if (error2) throw new Error(error2.message);
+    const workerIds = specialityWorkers.map(w => w.worker_id);
+    query = query.in('worker_id', workerIds);
+  }
+
+  // Búsqueda por nombre o apellidos
+  if (search) {
+    query = query.or(`name.ilike.%${search}%,surname.ilike.%${search}%`);
+  }
+
+  // Ordenación
+  if (sortBy === 'surname') {
+    query = query.order('surname', { ascending: order === 'asc' });
+  } else {
+    query = query.order('name', { ascending: order === 'asc' });
+  }
+
+  // Paginación
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+  query = query.range(from, to);
+
+  const { data, error, count } = await query;
+  if (error) throw new Error(error.message);
+
+  const total = count || 0;
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    data,
+    total,
+    page,
+    totalPages
+  };
+}
 
 module.exports = {
   getAllWorkers,
@@ -219,5 +299,7 @@ module.exports = {
   getWorkerByUserId,
   getWorkerHospital,
   getWorkerStats,
-  getUsersForPublishedShift
+  getUsersForPublishedShift,
+  getSupervisorByUserId,
+  getSupervisedWorkers
 };

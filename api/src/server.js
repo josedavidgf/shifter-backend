@@ -24,23 +24,7 @@ const pushRoutes = require('./src/routes/pushRoutes');
 const contentCardRoutes = require('./src/routes/contentCardRoutes');
 const calendarRoutes = require('./src/routes/calendarRoutes');
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
-
-app.use(cors({
-  origin: function (origin, callback) {
-    // Permite peticiones sin origen (como Postman) o si el origen está permitido
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS: ' + origin));
-    }
-  },
-  credentials: true,
-}));
-
-
-// Middleware JSON
-app.use(express.json());
+// ... existing code ...
 
 // Rutas API
 app.use('/api/auth', authRoutes);
@@ -60,11 +44,6 @@ app.use('/api/flags', featureFlagRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/push', pushRoutes);
 app.use('/api/content-cards', contentCardRoutes);
-app.use('/api/calendar', calendarRoutes);
+app.use('/api/calendar', calendarRoutes); 
 
-
-// Iniciar servidor
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
-});
+// ... existing code ... 

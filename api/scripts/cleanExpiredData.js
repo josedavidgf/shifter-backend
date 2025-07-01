@@ -6,7 +6,10 @@ async function expireOldShifts() {
   const today = new Date().toISOString().split('T')[0];
   const { error } = await supabaseAdmin
     .from('shifts')
-    .update({ state: 'expired' })
+    .update({ 
+      state: 'expired',
+      updated_at: new Date().toISOString()
+    })
     .lt('date', today)
     .eq('state', 'published');
 

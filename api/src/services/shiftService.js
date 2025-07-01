@@ -63,17 +63,21 @@ async function getShiftsByWorkerId(workerId) {
     return data;
 }
 async function updateShift(shiftId, updates, userId) {
-    // Verificar que el turno pertenece al user
+    const worker = await getWorkerByUserId(userId);
+
     const { data: shift, error: findError } = await supabase
         .from('shifts')
-        .select('shift_id, worker_id')
+        .select('worker_id')
         .eq('shift_id', shiftId)
         .single();
     if (findError) throw new Error('Turno no encontrado');
 
     const { data, error } = await supabase
         .from('shifts')
-        .update(updates)
+        .update({
+            ...updates,
+            updated_at: new Date().toISOString()
+        })
         .eq('shift_id', shiftId)
         .select()
         .single();
@@ -96,7 +100,10 @@ async function removeShift(shiftId, userId) {
 
     const { data, error } = await supabase
         .from('shifts')
-        .update({ state: 'removed' })
+        .update({ 
+            state: 'removed',
+            updated_at: new Date().toISOString()
+        })
         .eq('shift_id', shiftId)
         .select()
         .single();
